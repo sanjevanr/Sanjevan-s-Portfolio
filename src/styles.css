@@ -344,29 +344,38 @@ body { min-height: 0; }
 .spotify-player > :not(.spotify-player__art) { position: relative; z-index: 0; }
 .spotify-player__display { display: flex; min-width: 0; align-items: center; gap: 12px; }
 .spotify-player__visualizer { display: flex; width: 88px; height: 64px; flex: 0 0 88px; align-items: end; justify-content: center; gap: 2px; padding: 6px 5px; border: 1px solid rgba(222,242,255,.65); background: linear-gradient(180deg,rgba(3,34,83,.62),rgba(18,86,165,.36)); box-shadow: inset 0 1px 8px rgba(0,15,48,.45), 0 1px 0 rgba(255,255,255,.36); }
-.spotify-player__visualizer span { width: 2px; height: 50%; flex: 1 1 2px; transform: scaleY(.42); transform-origin: bottom; background: linear-gradient(180deg,#f5ffff 0%,#a9e9ff 40%,#49aaff 100%); box-shadow: 0 0 4px rgba(199,244,255,.65); }
-.spotify-player__visualizer span:nth-child(6n + 1) { height: 34%; }
-.spotify-player__visualizer span:nth-child(6n + 2) { height: 62%; }
-.spotify-player__visualizer span:nth-child(6n + 3) { height: 82%; }
-.spotify-player__visualizer span:nth-child(6n + 4) { height: 48%; }
-.spotify-player__visualizer span:nth-child(6n + 5) { height: 72%; }
-.spotify-player__visualizer span:nth-child(6n) { height: 42%; }
-.spotify-player--playing .spotify-player__visualizer span { animation: player-equalize 760ms ease-in-out infinite alternate; }
+.visualizer-bar { display: flex; min-width: 0; height: 100%; flex: 1 1 2px; align-items: flex-end; transform: scaleY(.14); transform-origin: bottom; transition: transform 420ms cubic-bezier(.2,.72,.28,1); }
+.spotify-player--playing .visualizer-bar { transform: scaleY(1); transition-duration: 240ms; }
+.visualizer-bar__motion { display: block; width: 100%; height: 100%; transform: scaleY(.08); transform-origin: bottom; }
+.spotify-player--playing .visualizer-bar__motion { animation: visualizer-oscillate var(--bar-duration) ease-in-out var(--bar-delay) infinite alternate; }
+.spotify-player--hidden .visualizer-bar__motion { animation-play-state: paused; }
+.visualizer-bar__activity { display: block; width: 100%; height: 100%; transform: scaleY(.75); transform-origin: bottom; background: linear-gradient(180deg,#f5ffff 0%,#a9e9ff 40%,#49aaff 100%); box-shadow: 0 0 4px rgba(199,244,255,.65); transition: transform 90ms ease-out; }
 .spotify-player__track { min-width: 0; text-shadow: 0 1px 2px rgba(0,22,66,.6); }
 .spotify-player__track h2 { margin: 0; overflow-wrap: anywhere; font: 700 17px/1.12 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing: -.04em; }
 .spotify-player__track p { margin: 5px 0 0; color: rgba(255,255,255,.86); font-size: 12px; }
 .spotify-player__controls { display: flex; align-items: center; justify-content: center; gap: 18px; }
 .spotify-player__skip, .spotify-player__play { display: grid; flex: 0 0 auto; place-items: center; padding: 0; border: 1px solid rgba(239,250,255,.9); border-radius: 50%; color: #07386e; background: linear-gradient(150deg,#f9fdff 0%,#a8d9fa 47%,#5d9fd9 100%); box-shadow: inset 0 1px 0 #fff, inset 0 -2px 2px rgba(23,75,124,.35), 0 2px 5px rgba(0,20,54,.42); }
-.spotify-player__skip { width: 30px; height: 30px; font: 700 19px/1 Arial,sans-serif; }
+.spotify-player__skip { width: 42px; height: 42px; font: 700 8px/1 "Helvetica Neue",Helvetica,Arial,sans-serif; letter-spacing: -.03em; cursor: pointer; }
 .spotify-player__play { width: 46px; height: 46px; cursor: pointer; transition: filter 140ms ease, transform 140ms ease; }
 .spotify-player__play span { font: 700 17px/1 Arial,sans-serif; }
 .spotify-player__play:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .spotify-player__play:active { filter: brightness(.9); transform: translateY(1px); }
-.spotify-player__play:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.spotify-player__skip:hover:not(:disabled) { filter: brightness(1.08); transform: translateY(-1px); }
+.spotify-player__skip:active:not(:disabled) { filter: brightness(.9); transform: translateY(1px); }
+.spotify-player__skip:focus-visible, .spotify-player__play:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .spotify-player__skip:disabled { border-color: rgba(230,238,242,.6); color: #71828c; background: linear-gradient(150deg,#d4dadd,#9da9af); box-shadow: inset 0 1px 0 rgba(255,255,255,.7); opacity: .7; }
 .spotify-player__play:disabled { border-color: #8a9aa3; color: #62717a; background: linear-gradient(145deg,#dce3e6,#a6b2b8); box-shadow: inset 0 1px 0 rgba(255,255,255,.85),inset 0 -2px 2px rgba(39,57,68,.25); cursor: not-allowed; filter: grayscale(.7); }
-.spotify-player__progress { height: 5px; overflow: hidden; border: 1px solid rgba(223,244,255,.85); border-radius: 5px; background: rgba(0,25,70,.68); box-shadow: inset 0 1px 2px rgba(0,0,0,.45); }
-.spotify-player__progress span { display: block; width: 42%; height: 100%; background: linear-gradient(180deg,#f5ffff,#9fe2ff 52%,#4ea6ed); box-shadow: 0 0 7px rgba(206,245,255,.9); }
+.spotify-player__timeline { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 7px; }
+.spotify-player__time { color: rgba(255,255,255,.92); font: 8px/1 var(--mono); text-shadow: 0 1px 2px rgba(0,20,62,.8); font-variant-numeric: tabular-nums; }
+.spotify-player__progress { width: 100%; height: 20px; min-width: 0; margin: 0; padding: 0; appearance: none; background: transparent; cursor: pointer; touch-action: pan-y; }
+.spotify-player__progress::-webkit-slider-runnable-track { height: 5px; border: 1px solid rgba(223,244,255,.85); border-radius: 5px; background: linear-gradient(90deg,#dffaff 0 var(--progress),rgba(0,25,70,.78) var(--progress) 100%); box-shadow: inset 0 1px 2px rgba(0,0,0,.45); }
+.spotify-player__progress::-moz-range-track { height: 5px; border: 1px solid rgba(223,244,255,.85); border-radius: 5px; background: rgba(0,25,70,.78); box-shadow: inset 0 1px 2px rgba(0,0,0,.45); }
+.spotify-player__progress::-moz-range-progress { height: 5px; border-radius: 5px; background: #dffaff; }
+.spotify-player__progress::-webkit-slider-thumb { width: 13px; height: 13px; margin-top: -5px; appearance: none; border: 1px solid #edfaff; border-radius: 50%; background: radial-gradient(circle at 35% 25%,#fff,#9be5ff 48%,#2878c3); box-shadow: inset 0 1px 0 #fff,0 1px 4px rgba(0,20,60,.55); }
+.spotify-player__progress::-moz-range-thumb { width: 12px; height: 12px; border: 1px solid #edfaff; border-radius: 50%; background: radial-gradient(circle at 35% 25%,#fff,#9be5ff 48%,#2878c3); box-shadow: inset 0 1px 0 #fff,0 1px 4px rgba(0,20,60,.55); }
+.spotify-player__progress:disabled { cursor: not-allowed; opacity: .58; }
+.spotify-player__progress:focus-visible { outline: 2px solid #fff; outline-offset: 1px; border-radius: 5px; }
+.spotify-player__error { margin: 0; color: #fff; font-size: 10px; text-align: center; text-shadow: 0 1px 2px #062b5d; }
 .spotify-player__audio { display: none; }
 .youtube-preview { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid rgba(44,58,66,.8); background: #18212b; box-shadow: inset 0 1px 0 rgba(255,255,255,.7), 0 2px 5px rgba(0,0,0,.25); }
 .youtube-preview__thumbnail { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -376,7 +385,7 @@ body { min-height: 0; }
 .youtube-preview:hover .youtube-preview__play { filter: brightness(1.1); }
 .youtube-preview:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
-@keyframes player-equalize { from { transform: scaleY(.28); } to { transform: scaleY(1); } }
+@keyframes visualizer-oscillate { from { transform: scaleY(calc(var(--bar-amplitude) * .22)); } to { transform: scaleY(var(--bar-amplitude)); } }
 
 @media (max-width: 760px) {
   .retro-window--intro { max-height: min(100%, 520px); }
@@ -386,44 +395,57 @@ body { min-height: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .spotify-player--playing .spotify-player__visualizer span { animation: none; transform: scaleY(.72); }
+  .visualizer-bar, .visualizer-bar__activity { transition: none; }
+  .spotify-player--playing .visualizer-bar { transform: scaleY(.72); }
+  .spotify-player--playing .visualizer-bar__motion { animation: none !important; transform: scaleY(.65) !important; }
+  .spotify-player--playing .visualizer-bar__activity { transform: scaleY(.75) !important; }
   .spotify-player__play { transition-duration: .01ms; }
 }
 
-/* A staggered collage keeps the portrait and about panel as the primary pair. */
-.horizontal-workspace > .moodboard-collage { display: grid; width: min(100%,1240px); min-width: 900px; height: 100%; flex: 0 0 auto; grid-template-areas: "portrait about about" "portrait music video"; grid-template-columns: minmax(270px,1.05fr) minmax(250px,1fr) minmax(220px,.88fr); grid-template-rows: minmax(220px,1.15fr) minmax(190px,.9fr); align-content: center; align-items: center; gap: clamp(14px,1.6vw,24px); margin: 0; }
-.moodboard-collage > .photo-frame--standalone, .moodboard-collage > .photo-panel-restore { grid-area: portrait; justify-self: center; }
-.moodboard-collage > .photo-frame--standalone { width: min(100%,42dvh,400px); transform: translate(-5px,4px); }
-.moodboard-collage > section.retro-window--intro, .moodboard-collage > button.retro-window--intro { grid-area: about; justify-self: center; }
-.moodboard-collage > section.retro-window--intro { width: min(100%,600px); max-height: min(100%,500px); transform: translate(10px,-8px); }
-.moodboard-collage > button.retro-window--intro { width: auto; transform: translate(10px,-8px); }
-.moodboard-collage > section.retro-window--spotify, .moodboard-collage > button.retro-window--spotify { grid-area: music; justify-self: end; align-self: center; }
-.moodboard-collage > section.retro-window--spotify { width: min(100%,320px); transform: translate(-16px,12px); }
-.moodboard-collage > button.retro-window--spotify { width: auto; transform: translate(-16px,12px); }
-.moodboard-collage > section.retro-window--youtube, .moodboard-collage > button.retro-window--youtube { grid-area: video; justify-self: start; align-self: center; }
-.moodboard-collage > section.retro-window--youtube { width: min(100%,310px); transform: translate(10px,-10px); }
-.moodboard-collage > button.retro-window--youtube { width: auto; transform: translate(10px,-10px); }
+/* Desktop collage: independent positions create a compact, irregular cluster. */
+.horizontal-workspace > .moodboard-collage { position: relative; display: block; width: min(100%,1180px); min-width: 0; height: 100%; flex: 0 0 auto; margin: 0; }
+.moodboard-collage > .photo-frame--standalone, .moodboard-collage > .photo-panel-restore { position: absolute; top: 53%; left: 35%; z-index: 4; transform: translate(-50%,-70%); }
+.moodboard-collage > .photo-frame--standalone { width: min(100%,42dvh,400px); }
+.moodboard-collage > section.retro-window--intro, .moodboard-collage > button.retro-window--intro { position: absolute; top: 25%; left: 80%; z-index: 4; transform: translate(-50%,-50%); }
+.moodboard-collage > section.retro-window--intro { width: min(100%,600px,42vw); max-height: min(100%,500px); }
+.moodboard-collage > button.retro-window--intro { width: auto; }
+.moodboard-collage > section.retro-window--spotify, .moodboard-collage > button.retro-window--spotify { position: absolute; top: 76%; left: 72%; z-index: 4; transform: translate(-50%,-50%); }
+.moodboard-collage > section.retro-window--spotify { width: min(100%,320px); }
+.moodboard-collage > button.retro-window--spotify { width: auto; }
+.moodboard-collage > section.retro-window--youtube, .moodboard-collage > button.retro-window--youtube { position: absolute; top: 81%; left: 24%; z-index: 5; transform: translate(-50%,-50%); }
+.moodboard-collage > section.retro-window--youtube { width: min(100%,310px); }
+.moodboard-collage > button.retro-window--youtube { width: auto; }
 .retro-window--spotify .spotify-player { min-height: 208px; padding: 12px; gap: 10px; }
 .retro-window--spotify .spotify-player__visualizer { width: 76px; height: 56px; flex-basis: 76px; }
 .retro-window--spotify .spotify-player__controls { gap: 14px; }
 .retro-window--spotify .spotify-player__play { width: 40px; height: 40px; }
+.moodboard-collage > section.retro-window--spotify { height: 100%; max-height: min(100%,360px); }
+.moodboard-collage > section.retro-window--spotify .retro-window__body { min-height: 0; flex: 1 1 auto; overflow: hidden; padding: 6px; }
+.moodboard-collage > section.retro-window--spotify .spotify-player { height: 100%; min-height: 0; padding: 10px; gap: 8px; }
 
 @media (max-width: 760px) {
   .horizontal-workspace > .moodboard-collage { display: flex; width: max-content; min-width: 100%; height: 100%; flex: 0 0 max-content; align-items: center; gap: 16px; }
+  .horizontal-workspace > .moodboard-collage > * { position: relative; inset: auto; transform: none; }
+  .moodboard-collage > .retro-window--intro, .moodboard-collage > .retro-window--spotify, .moodboard-collage > .retro-window--youtube { align-self: center; }
   .moodboard-collage > .photo-frame--standalone { width: min(88vw,42dvh); transform: none; }
   .moodboard-collage > .retro-window--intro { width: 86vw; max-height: min(100%,520px); transform: none; }
   .moodboard-collage > .retro-window--spotify { width: min(78vw,320px); transform: none; }
   .moodboard-collage > .retro-window--youtube { width: min(82vw,340px); transform: none; }
   .moodboard-collage > button.retro-window__restore { width: auto; max-height: none; transform: none; }
   .retro-window--spotify .spotify-player { min-height: 208px; }
+  .moodboard-collage > section.retro-window--spotify { height: fit-content; max-height: min(100%,360px); }
+  .moodboard-collage > section.retro-window--spotify .retro-window__body { flex: 0 1 auto; overflow: auto; padding: 8px; }
+  .moodboard-collage > section.retro-window--spotify .spotify-player { height: auto; min-height: 208px; }
 }
 
 @media (max-height: 700px) and (min-width: 761px) {
   .page-shell--home { padding-top: calc(clamp(32px,6vh,52px) + var(--site-wordmark-height,90px) + 12px); padding-bottom: calc(var(--site-footer-height,40px) + 84px + env(safe-area-inset-bottom)); }
-  .horizontal-workspace > .moodboard-collage { grid-template-rows: minmax(175px,1.1fr) minmax(150px,.9fr); gap: 12px; }
+  .moodboard-collage > .retro-window--intro, .moodboard-collage > button.retro-window--intro { top: 28%; }
+  .moodboard-collage > section.retro-window--youtube, .moodboard-collage > button.retro-window--youtube { top: 78%; }
+  .moodboard-collage > section.retro-window--spotify, .moodboard-collage > button.retro-window--spotify { top: 76%; }
   .moodboard-collage > .photo-frame--standalone { width: min(100%,40dvh,380px); }
-  .retro-window--spotify .spotify-player { min-height: 166px; padding: 9px; gap: 7px; }
-  .retro-window--spotify .spotify-player__visualizer { width: 64px; height: 42px; flex-basis: 64px; }
+  .moodboard-collage > section.retro-window--spotify .spotify-player { min-height: 0; padding: 8px; gap: 6px; }
+  .retro-window--spotify .spotify-player__visualizer { width: 60px; height: 40px; flex-basis: 60px; }
   .retro-window--spotify .spotify-player__play { width: 34px; height: 34px; }
-  .retro-window--spotify .spotify-player__skip { width: 25px; height: 25px; }
+  .retro-window--spotify .spotify-player__skip { width: 38px; height: 38px; font-size: 7px; }
 }
