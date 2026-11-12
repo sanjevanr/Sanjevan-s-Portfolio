@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import WindowControls from './WindowControls'
 import useWindowController from '../hooks/useWindowController'
 
@@ -10,6 +10,7 @@ type RetroWindowProps = {
   className?: string
   accessibleLabel?: string
   maximiseIndicatorOnly?: boolean
+  singleContentMount?: boolean
 }
 
 export default function RetroWindow({
@@ -20,6 +21,7 @@ export default function RetroWindow({
   className = '',
   accessibleLabel = `${title} window`,
   maximiseIndicatorOnly = false,
+  singleContentMount = false,
 }: RetroWindowProps) {
   const {
     isMinimised,
@@ -33,7 +35,16 @@ export default function RetroWindow({
     handleDialogClose,
     handleDialogClick,
   } = useWindowController()
+  const [dialogIsOpen, setDialogIsOpen] = useState(false)
   const classes = `retro-window ${className}`.trim()
+  const openWindowDialog = () => {
+    openDialog()
+    setDialogIsOpen(true)
+  }
+  const handleWindowDialogClose = () => {
+    setDialogIsOpen(false)
+    handleDialogClose()
+  }
 
   return (
     <>
@@ -57,11 +68,11 @@ export default function RetroWindow({
               canMinimise={canMinimise}
               maximiseIndicatorOnly={maximiseIndicatorOnly}
               maximiseRef={maximiseButtonRef}
-              onMaximise={openDialog}
+              onMaximise={openWindowDialog}
               onMinimise={minimise}
             />
           </header>
-          <div className="retro-window__body">{children}</div>
+          {(!singleContentMount || !dialogIsOpen) && <div className="retro-window__body">{children}</div>}
         </section>
       )}
 
@@ -70,7 +81,7 @@ export default function RetroWindow({
           ref={dialogRef}
           className={`retro-window__dialog ${className}`.trim()}
           aria-label={`Expanded ${accessibleLabel}`}
-          onClose={handleDialogClose}
+          onClose={handleWindowDialogClose}
           onClick={handleDialogClick}
         >
           <header className="retro-window__titlebar retro-window__titlebar--dialog">
@@ -84,7 +95,7 @@ export default function RetroWindow({
               onMinimise={closeDialog}
             />
           </header>
-          <div className="retro-window__dialog-body">{children}</div>
+          {(!singleContentMount || dialogIsOpen) && <div className="retro-window__dialog-body">{children}</div>}
         </dialog>
       )}
     </>

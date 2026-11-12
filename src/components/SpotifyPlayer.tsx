@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import audioSource from '../assets/Nujabes - Highs 2 Lows (feat.Cise Starr from CYNE) [Official Audio].mp3'
 
-const bars = Array.from({ length: 32 }, (_, index) => ({
+const bars = Array.from({ length: 16 }, (_, index) => ({
   id: index,
   duration: 450 + ((index * 73) % 550),
   delay: -((index * 97) % 900),
-  amplitude: 0.35 + ((index * 17) % 60) / 100,
+  amplitude: 0.68 + ((index * 17) % 30) / 100,
 }))
 
 let autoplayAttempted = false
@@ -67,7 +67,7 @@ export default function SpotifyPlayer() {
     if (!analyser) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       visualizer.querySelectorAll<HTMLElement>('.visualizer-bar__activity').forEach((bar) => {
-        bar.style.transform = 'scaleY(0.55)'
+        bar.style.opacity = '1'
       })
       return
     }
@@ -84,8 +84,8 @@ export default function SpotifyPlayer() {
         const barsNow = visualizerRef.current.querySelectorAll<HTMLElement>('.visualizer-bar__activity')
         for (let index = 0; index < barsNow.length; index += 1) {
           const binIndex = Math.min(frequencies.length - 1, Math.floor(index * frequencies.length / barsNow.length))
-          const level = 45 + (frequencies[binIndex] / 255) * 55
-          barsNow[index].style.transform = `scaleY(${level / 100})`
+          const brightness = 0.62 + (frequencies[binIndex] / 255) * 0.38
+          barsNow[index].style.opacity = String(brightness)
         }
         lastPaint = timestamp
       }
@@ -185,7 +185,7 @@ export default function SpotifyPlayer() {
         stopVisualizer(false)
         if (!audio?.paused) {
           visualizerRef.current?.querySelectorAll<HTMLElement>('.visualizer-bar__activity').forEach((bar) => {
-            bar.style.transform = 'scaleY(0.55)'
+            bar.style.opacity = '1'
           })
         }
       } else if (audio && !audio.paused && isDocumentVisible) {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
+import EyeOfHorusPanel from './components/EyeOfHorusPanel'
 import HorizontalWorkspace from './components/HorizontalWorkspace'
 import { IntroPanel } from './components/IntroPanel'
 import PhotoPanel from './components/PhotoPanel'
@@ -65,6 +66,20 @@ const navigation = [
   ['contact', '/contact'],
 ] as const
 
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query)
+    const update = () => setMatches(mediaQuery.matches)
+    update()
+    mediaQuery.addEventListener('change', update)
+    return () => mediaQuery.removeEventListener('change', update)
+  }, [query])
+
+  return matches
+}
+
 function Navigation() {
   return (
     <nav className="site-nav" aria-label="Main navigation">
@@ -86,29 +101,71 @@ function SiteHeader() {
   )
 }
 
-function HomePage() {
+function CollagePanels() {
   return (
-    <main className="page-shell page-shell--home">
-      <HorizontalWorkspace label="Homepage panels. Scroll horizontally to browse.">
-        <div className="moodboard-collage">
-          <div className="collage-gif" aria-hidden="true">
-            <picture>
-              <source media="(prefers-reduced-motion: reduce)" srcSet="/rotating-eye-static.png" />
-              <img src="/rotating-eye.gif" alt="" />
-            </picture>
-          </div>
+    <>
+      <EyeOfHorusPanel />
+      <PhotoPanel />
+      <RetroWindow title="About me" accessibleLabel="About me window" className="retro-window--intro">
+        <IntroPanel />
+      </RetroWindow>
+      <RetroWindow title="Video" accessibleLabel="YouTube video preview" canMaximise={false} maximiseIndicatorOnly className="retro-window--youtube">
+        <YouTubePreview />
+      </RetroWindow>
+      <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} maximiseIndicatorOnly className="retro-window--spotify">
+        <SpotifyPlayer />
+      </RetroWindow>
+    </>
+  )
+}
+
+function HomePage() {
+  const isMobile = useMediaQuery('(max-width: 760px)')
+  const isTablet = useMediaQuery('(min-width: 761px) and (max-width: 1199px)')
+  const pageRef = useRef<HTMLElement>(null)
+  const [collageScale, setCollageScale] = useState(1)
+
+  useLayoutEffect(() => {
+    const page = pageRef.current
+    if (!page || !isTablet) return
+
+    const updateScale = () => {
+      const style = window.getComputedStyle(page)
+      const horizontalPadding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight)
+      const verticalPadding = Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom)
+      const availableWidth = page.clientWidth - horizontalPadding
+      const availableHeight = page.clientHeight - verticalPadding
+      if (availableWidth <= 0 || availableHeight <= 0) return
+      const nextScale = Math.min(1, Math.max(0.7, availableWidth / 1180), availableHeight / 620)
+      setCollageScale((current) => Math.abs(current - nextScale) < 0.005 ? current : nextScale)
+    }
+
+    updateScale()
+    const observer = new ResizeObserver(updateScale)
+    observer.observe(page)
+    return () => observer.disconnect()
+  }, [isTablet])
+
+  return (
+    <main ref={pageRef} className="page-shell page-shell--home">
+      {isMobile ? (
+        <div className="mobile-home-content">
           <PhotoPanel />
           <RetroWindow title="About me" accessibleLabel="About me window" className="retro-window--intro">
             <IntroPanel />
           </RetroWindow>
-          <RetroWindow title="Video" accessibleLabel="YouTube video preview" canMaximise={false} maximiseIndicatorOnly className="retro-window--youtube">
-            <YouTubePreview />
-          </RetroWindow>
-          <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} maximiseIndicatorOnly className="retro-window--spotify">
-            <SpotifyPlayer />
-          </RetroWindow>
         </div>
-      </HorizontalWorkspace>
+      ) : (
+        <HorizontalWorkspace label="Homepage panels. Scroll horizontally to browse.">
+          {isTablet ? (
+            <div className="collage-scale-stage" style={{ width: 1180 * collageScale, height: 620 * collageScale }}>
+              <div className="moodboard-collage moodboard-collage--tablet" style={{ transform: `translate(-50%, -50%) scale(${collageScale})` }}>
+                <CollagePanels />
+              </div>
+            </div>
+          ) : <div className="moodboard-collage"><CollagePanels /></div>}
+        </HorizontalWorkspace>
+      )}
     </main>
   )
 }
