@@ -91,15 +91,21 @@ function HomePage() {
     <main className="page-shell page-shell--home">
       <HorizontalWorkspace label="Homepage panels. Scroll horizontally to browse.">
         <div className="moodboard-collage">
+          <div className="collage-gif" aria-hidden="true">
+            <picture>
+              <source media="(prefers-reduced-motion: reduce)" srcSet="/rotating-eye-static.png" />
+              <img src="/rotating-eye.gif" alt="" />
+            </picture>
+          </div>
           <PhotoPanel />
           <RetroWindow title="About me" accessibleLabel="About me window" className="retro-window--intro">
             <IntroPanel />
           </RetroWindow>
-          <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} maximiseIndicatorOnly className="retro-window--spotify">
-            <SpotifyPlayer />
-          </RetroWindow>
           <RetroWindow title="Video" accessibleLabel="YouTube video preview" canMaximise={false} maximiseIndicatorOnly className="retro-window--youtube">
             <YouTubePreview />
+          </RetroWindow>
+          <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} maximiseIndicatorOnly className="retro-window--spotify">
+            <SpotifyPlayer />
           </RetroWindow>
         </div>
       </HorizontalWorkspace>

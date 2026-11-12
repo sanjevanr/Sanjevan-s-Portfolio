@@ -404,6 +404,8 @@ body { min-height: 0; }
 
 /* Desktop collage: independent positions create a compact, irregular cluster. */
 .horizontal-workspace > .moodboard-collage { position: relative; display: block; width: min(100%,1180px); min-width: 0; height: 100%; flex: 0 0 auto; margin: 0; }
+.moodboard-collage > .collage-gif { position: absolute; top: 48%; left: 6%; z-index: 2; width: clamp(110px,10vw,155px); height: auto; transform: translate(-50%,-50%); line-height: 0; pointer-events: none; }
+.collage-gif picture, .collage-gif img { display: block; width: 100%; height: auto; }
 .moodboard-collage > .photo-frame--standalone, .moodboard-collage > .photo-panel-restore { position: absolute; top: 53%; left: 35%; z-index: 4; transform: translate(-50%,-70%); }
 .moodboard-collage > .photo-frame--standalone { width: min(100%,42dvh,400px); }
 .moodboard-collage > section.retro-window--intro, .moodboard-collage > button.retro-window--intro { position: absolute; top: 25%; left: 80%; z-index: 4; transform: translate(-50%,-50%); }
@@ -426,6 +428,7 @@ body { min-height: 0; }
 @media (max-width: 760px) {
   .horizontal-workspace > .moodboard-collage { display: flex; width: max-content; min-width: 100%; height: 100%; flex: 0 0 max-content; align-items: center; gap: 16px; }
   .horizontal-workspace > .moodboard-collage > * { position: relative; inset: auto; transform: none; }
+  .moodboard-collage > .collage-gif { width: min(44vw,155px); flex: 0 0 auto; align-self: center; }
   .moodboard-collage > .retro-window--intro, .moodboard-collage > .retro-window--spotify, .moodboard-collage > .retro-window--youtube { align-self: center; }
   .moodboard-collage > .photo-frame--standalone { width: min(88vw,42dvh); transform: none; }
   .moodboard-collage > .retro-window--intro { width: 86vw; max-height: min(100%,520px); transform: none; }

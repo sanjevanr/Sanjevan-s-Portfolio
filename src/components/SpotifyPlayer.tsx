@@ -8,6 +8,8 @@ const bars = Array.from({ length: 32 }, (_, index) => ({
   amplitude: 0.35 + ((index * 17) % 60) / 100,
 }))
 
+let autoplayAttempted = false
+
 function validDuration(value: number) {
   return Number.isFinite(value) && value > 0 ? value : 0
 }
@@ -147,9 +149,19 @@ export default function SpotifyPlayer() {
 
   useEffect(() => {
     const audio = audioRef.current
-    if (!audio) return
-    // Try once on mount; a browser may reject audible autoplay until a user gesture.
-    void audio.play().catch(() => undefined)
+    if (!audio || autoplayAttempted) return
+    // Defer one tick so React StrictMode's development-only setup/cleanup cycle
+    // does not consume the one autoplay attempt before the page settles.
+    const attempt = window.setTimeout(() => {
+      if (autoplayAttempted) return
+      autoplayAttempted = true
+      void audio.play().then(() => {
+        setIsPlaying(!audio.paused)
+      }).catch(() => {
+        setIsPlaying(false)
+      })
+    }, 0)
+    return () => window.clearTimeout(attempt)
   }, [])
 
   useEffect(() => {
@@ -187,6 +199,7 @@ export default function SpotifyPlayer() {
   const togglePlayback = async () => {
     const audio = audioRef.current
     if (!audio) return
+    autoplayAttempted = true
     if (!audio.paused) {
       audio.pause()
       return
