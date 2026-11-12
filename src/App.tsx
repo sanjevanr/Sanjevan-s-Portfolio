@@ -90,16 +90,18 @@ function HomePage() {
   return (
     <main className="page-shell page-shell--home">
       <HorizontalWorkspace label="Homepage panels. Scroll horizontally to browse.">
-        <PhotoPanel />
-        <RetroWindow title="About me" accessibleLabel="About me window" className="retro-window--intro">
-          <IntroPanel />
-        </RetroWindow>
-        <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} className="retro-window--spotify">
-          <SpotifyPlayer />
-        </RetroWindow>
-        <RetroWindow title="Video" accessibleLabel="YouTube video preview" className="retro-window--youtube">
-          <YouTubePreview />
-        </RetroWindow>
+        <div className="moodboard-collage">
+          <PhotoPanel />
+          <RetroWindow title="About me" accessibleLabel="About me window" className="retro-window--intro">
+            <IntroPanel />
+          </RetroWindow>
+          <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} maximiseIndicatorOnly className="retro-window--spotify">
+            <SpotifyPlayer />
+          </RetroWindow>
+          <RetroWindow title="Video" accessibleLabel="YouTube video preview" canMaximise={false} maximiseIndicatorOnly className="retro-window--youtube">
+            <YouTubePreview />
+          </RetroWindow>
+        </div>
       </HorizontalWorkspace>
     </main>
   )

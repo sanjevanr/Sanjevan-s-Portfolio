@@ -5,6 +5,7 @@ type WindowControlsProps = {
   canMaximise: boolean
   canMinimise: boolean
   expanded?: boolean
+  maximiseIndicatorOnly?: boolean
   maximiseRef?: Ref<HTMLButtonElement>
   onMaximise: () => void
   onMinimise: () => void
@@ -15,6 +16,7 @@ export default function WindowControls({
   canMaximise,
   canMinimise,
   expanded = false,
+  maximiseIndicatorOnly = false,
   maximiseRef,
   onMaximise,
   onMinimise,
@@ -31,15 +33,19 @@ export default function WindowControls({
         disabled={!canMinimise}
         onClick={onMinimise}
       />
-      <button
-        ref={maximiseRef}
-        className="window-control window-control--maximise"
-        type="button"
-        aria-label={`${expanded ? 'Restore' : 'Maximise'} ${panelName} panel`}
-        title={`${expanded ? 'Restore' : 'Maximise'} ${panelName} panel`}
-        disabled={!canMaximise}
-        onClick={onMaximise}
-      />
+      {maximiseIndicatorOnly && !canMaximise ? (
+        <span className="window-control window-control--maximise window-control--indicator" aria-hidden="true" />
+      ) : (
+        <button
+          ref={maximiseRef}
+          className="window-control window-control--maximise"
+          type="button"
+          aria-label={`${expanded ? 'Restore' : 'Maximise'} ${panelName} panel`}
+          title={`${expanded ? 'Restore' : 'Maximise'} ${panelName} panel`}
+          disabled={!canMaximise}
+          onClick={onMaximise}
+        />
+      )}
     </div>
   )
 }

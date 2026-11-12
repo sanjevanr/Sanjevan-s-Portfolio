@@ -49,7 +49,7 @@ export default function PhotoPanel() {
   return (
     <>
       {isMinimised ? (
-        <button ref={restoreButtonRef} className="retro-window__restore" type="button" aria-label="Restore photo panel" onClick={restore}>
+        <button ref={restoreButtonRef} className="retro-window__restore photo-panel-restore" type="button" aria-label="Restore photo panel" onClick={restore}>
           <span className="retro-window__restore-dot" aria-hidden="true" />
           Restore photo
         </button>

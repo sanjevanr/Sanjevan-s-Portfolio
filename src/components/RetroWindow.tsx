@@ -9,6 +9,7 @@ type RetroWindowProps = {
   canMinimise?: boolean
   className?: string
   accessibleLabel?: string
+  maximiseIndicatorOnly?: boolean
 }
 
 export default function RetroWindow({
@@ -18,6 +19,7 @@ export default function RetroWindow({
   canMinimise = true,
   className = '',
   accessibleLabel = `${title} window`,
+  maximiseIndicatorOnly = false,
 }: RetroWindowProps) {
   const {
     isMinimised,
@@ -38,7 +40,7 @@ export default function RetroWindow({
       {isMinimised ? (
         <button
           ref={restoreButtonRef}
-          className="retro-window__restore"
+          className={`retro-window__restore ${className}`.trim()}
           type="button"
           aria-label={`Restore ${title.toLowerCase()} panel`}
           onClick={restore}
@@ -53,6 +55,7 @@ export default function RetroWindow({
               title={title}
               canMaximise={canMaximise}
               canMinimise={canMinimise}
+              maximiseIndicatorOnly={maximiseIndicatorOnly}
               maximiseRef={maximiseButtonRef}
               onMaximise={openDialog}
               onMinimise={minimise}
@@ -75,6 +78,7 @@ export default function RetroWindow({
               title={title}
               canMaximise={canMaximise}
               canMinimise={canMinimise}
+              maximiseIndicatorOnly={maximiseIndicatorOnly}
               expanded
               onMaximise={closeDialog}
               onMinimise={closeDialog}
