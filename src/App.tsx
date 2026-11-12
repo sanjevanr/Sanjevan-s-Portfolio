@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
+import MorphingBackground from './components/background/MorphingBackground'
 
 const navigation = [
   ['home', '/'],
@@ -8,26 +8,6 @@ const navigation = [
   ['about', '/about'],
   ['contact', '/contact'],
 ] as const
-
-function AmbientBackground() {
-  return (
-    <div className="ambient" aria-hidden="true">
-      <div className="ambient__palette" />
-      <div className="ambient__palette ambient__palette--second" />
-      <div className="ambient__palette ambient__palette--third" />
-      <div className="ambient__palette ambient__palette--fourth" />
-      <div className="ambient__bands" />
-      <div className="ambient__scanlines" />
-      <div className="ambient__texture" />
-      <span className="orb orb--one" />
-      <span className="orb orb--two" />
-      <span className="ring ring--one" />
-      <span className="ring ring--two" />
-      <span className="dot-cluster dot-cluster--one">••••<br />••••<br />••••</span>
-      <span className="dot-cluster dot-cluster--two">••••<br />••••<br />••••</span>
-    </div>
-  )
-}
 
 function Navigation() {
   return (
@@ -61,7 +41,6 @@ function HomePage() {
     <main className="page-shell">
       <h1 className="wordmark">sanjevan rajasegar</h1>
       <PhotoPlaceholder />
-      <Navigation />
     </main>
   )
 }
@@ -70,25 +49,30 @@ function ComingSoonPage() {
   return (
     <main className="page-shell page-shell--coming-soon">
       <p className="coming-soon">Coming soon</p>
-      <Navigation />
     </main>
   )
 }
 
-function App() {
-  const [isVisible, setIsVisible] = useState(() => document.visibilityState === 'visible')
-
-  useEffect(() => {
-    const updateVisibility = () => setIsVisible(document.visibilityState === 'visible')
-    document.addEventListener('visibilitychange', updateVisibility)
-    return () => document.removeEventListener('visibilitychange', updateVisibility)
-  }, [])
-
+function BottomDock() {
   return (
-    <>
-      <div className={isVisible ? undefined : 'ambient-paused'}>
-        <AmbientBackground />
-      </div>
+    <div className="bottom-dock">
+      <Navigation />
+      <footer className="site-footer">
+        <p>© Sanjevan Rajasegar 2026</p>
+        <p>
+          Website Developed by Sanjevan Rajasegar, Inspired by{' '}
+          <a href="https://www.instagram.com/bicflame" target="_blank" rel="noopener noreferrer">bicflame</a>
+        </p>
+      </footer>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <div className="site">
+      <MorphingBackground />
+      <div className="site-content">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/projects" element={<ComingSoonPage />} />
@@ -97,7 +81,9 @@ function App() {
         <Route path="/contact" element={<ComingSoonPage />} />
         <Route path="*" element={<HomePage />} />
       </Routes>
-    </>
+      </div>
+      <BottomDock />
+    </div>
   )
 }
 
