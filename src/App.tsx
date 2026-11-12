@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
+import HorizontalWorkspace from './components/HorizontalWorkspace'
+import { IntroPanel } from './components/IntroPanel'
+import RetroWindow from './components/RetroWindow'
 import ThemeToggle from './components/ThemeToggle'
 
 type Theme = 'light' | 'dark'
@@ -80,15 +83,12 @@ function SiteHeader() {
   )
 }
 
-function PhotoPlaceholder() {
+function FeaturedPhoto() {
   return (
-    <figure className="photo-frame" aria-label="Featured photograph placeholder">
+    <figure className="photo-frame">
       <div className="photo-frame__inner">
         <span className="photo-cross photo-cross--top" aria-hidden="true">+</span>
-        <div className="placeholder-copy">
-          <span className="placeholder-copy__title">FEATURED<br />PHOTOGRAPH</span>
-          <span className="placeholder-copy__pending">IMAGE PENDING</span>
-        </div>
+        <img className="featured-photo" src="/home-page-featured-photo.png" alt="Sanjevan holding a camera for a self-portrait" />
         <span className="photo-cross photo-cross--bottom" aria-hidden="true">+</span>
       </div>
     </figure>
@@ -98,7 +98,14 @@ function PhotoPlaceholder() {
 function HomePage() {
   return (
     <main className="page-shell page-shell--home">
-      <PhotoPlaceholder />
+      <HorizontalWorkspace label="Homepage panels. Scroll horizontally to browse.">
+        <RetroWindow title="Photo" className="retro-window--photo">
+          <FeaturedPhoto />
+        </RetroWindow>
+        <RetroWindow title="Introduction" className="retro-window--intro">
+          <IntroPanel />
+        </RetroWindow>
+      </HorizontalWorkspace>
     </main>
   )
 }
