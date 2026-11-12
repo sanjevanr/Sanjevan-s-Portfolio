@@ -3,8 +3,11 @@ import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
 import HorizontalWorkspace from './components/HorizontalWorkspace'
 import { IntroPanel } from './components/IntroPanel'
+import PhotoPanel from './components/PhotoPanel'
 import RetroWindow from './components/RetroWindow'
+import SpotifyPlayer from './components/SpotifyPlayer'
 import ThemeToggle from './components/ThemeToggle'
+import YouTubePreview from './components/YouTubePreview'
 
 type Theme = 'light' | 'dark'
 
@@ -83,27 +86,19 @@ function SiteHeader() {
   )
 }
 
-function FeaturedPhoto() {
-  return (
-    <figure className="photo-frame">
-      <div className="photo-frame__inner">
-        <span className="photo-cross photo-cross--top" aria-hidden="true">+</span>
-        <img className="featured-photo" src="/home-page-featured-photo.png" alt="Sanjevan holding a camera for a self-portrait" />
-        <span className="photo-cross photo-cross--bottom" aria-hidden="true">+</span>
-      </div>
-    </figure>
-  )
-}
-
 function HomePage() {
   return (
     <main className="page-shell page-shell--home">
       <HorizontalWorkspace label="Homepage panels. Scroll horizontally to browse.">
-        <RetroWindow title="Photo" className="retro-window--photo">
-          <FeaturedPhoto />
-        </RetroWindow>
-        <RetroWindow title="Introduction" className="retro-window--intro">
+        <PhotoPanel />
+        <RetroWindow title="About me" accessibleLabel="About me window" className="retro-window--intro">
           <IntroPanel />
+        </RetroWindow>
+        <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} className="retro-window--spotify">
+          <SpotifyPlayer />
+        </RetroWindow>
+        <RetroWindow title="Video" accessibleLabel="YouTube video preview" className="retro-window--youtube">
+          <YouTubePreview />
         </RetroWindow>
       </HorizontalWorkspace>
     </main>

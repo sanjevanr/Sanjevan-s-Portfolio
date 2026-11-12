@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import WindowControls from './WindowControls'
+import useWindowController from '../hooks/useWindowController'
 
 type RetroWindowProps = {
   title: string
@@ -7,6 +8,7 @@ type RetroWindowProps = {
   canMaximise?: boolean
   canMinimise?: boolean
   className?: string
+  accessibleLabel?: string
 }
 
 export default function RetroWindow({
@@ -15,29 +17,21 @@ export default function RetroWindow({
   canMaximise = true,
   canMinimise = true,
   className = '',
+  accessibleLabel = `${title} window`,
 }: RetroWindowProps) {
-  const [isMinimised, setIsMinimised] = useState(false)
-  const dialogRef = useRef<HTMLDialogElement>(null)
-  const maximiseButtonRef = useRef<HTMLButtonElement>(null)
-  const restoreButtonRef = useRef<HTMLButtonElement>(null)
-  const titleId = useId()
+  const {
+    isMinimised,
+    dialogRef,
+    maximiseButtonRef,
+    restoreButtonRef,
+    openDialog,
+    closeDialog,
+    minimise,
+    restore,
+    handleDialogClose,
+    handleDialogClick,
+  } = useWindowController()
   const classes = `retro-window ${className}`.trim()
-
-  useEffect(() => {
-    if (isMinimised) restoreButtonRef.current?.focus()
-  }, [isMinimised])
-
-  const toggleDialog = () => {
-    const dialog = dialogRef.current
-    if (!dialog || !canMaximise) return
-    if (dialog.open) {
-      dialog.close()
-      return
-    }
-    dialog.showModal()
-  }
-
-  const closeDialog = () => dialogRef.current?.close()
 
   return (
     <>
@@ -47,55 +41,48 @@ export default function RetroWindow({
           className="retro-window__restore"
           type="button"
           aria-label={`Restore ${title.toLowerCase()} panel`}
-          onClick={() => {
-            setIsMinimised(false)
-            window.requestAnimationFrame(() => maximiseButtonRef.current?.focus())
-          }}
+          onClick={restore}
         >
           <span className="retro-window__restore-dot" aria-hidden="true" />
-          Restore {title}
+          Restore panel
         </button>
       ) : (
-        <section className={classes} aria-labelledby={`${titleId}-heading`}>
+        <section className={classes} aria-label={accessibleLabel}>
           <header className="retro-window__titlebar">
             <WindowControls
               title={title}
               canMaximise={canMaximise}
               canMinimise={canMinimise}
               maximiseRef={maximiseButtonRef}
-              onMaximise={toggleDialog}
-              onMinimise={() => setIsMinimised(true)}
+              onMaximise={openDialog}
+              onMinimise={minimise}
             />
-            <h2 id={`${titleId}-heading`} className="retro-window__title">{title}</h2>
-            {title.toLowerCase() === 'introduction' && (
-              <span className="retro-window__hint">green button to expand</span>
-            )}
           </header>
           <div className="retro-window__body">{children}</div>
         </section>
       )}
 
-      <dialog
-        ref={dialogRef}
-        className={`retro-window__dialog ${className}`.trim()}
-        aria-labelledby={`${titleId}-dialog-heading`}
-        onClose={() => {
-          if (maximiseButtonRef.current?.isConnected) maximiseButtonRef.current.focus()
-        }}
-      >
-        <header className="retro-window__titlebar retro-window__titlebar--dialog">
-          <WindowControls
-            title={title}
-            canMaximise={canMaximise}
-            canMinimise={canMinimise}
-            expanded
-            onMaximise={closeDialog}
-            onMinimise={closeDialog}
-          />
-          <h2 id={`${titleId}-dialog-heading`} className="retro-window__title">{title}</h2>
-        </header>
-        <div className="retro-window__dialog-body">{children}</div>
-      </dialog>
+      {canMaximise && (
+        <dialog
+          ref={dialogRef}
+          className={`retro-window__dialog ${className}`.trim()}
+          aria-label={`Expanded ${accessibleLabel}`}
+          onClose={handleDialogClose}
+          onClick={handleDialogClick}
+        >
+          <header className="retro-window__titlebar retro-window__titlebar--dialog">
+            <WindowControls
+              title={title}
+              canMaximise={canMaximise}
+              canMinimise={canMinimise}
+              expanded
+              onMaximise={closeDialog}
+              onMinimise={closeDialog}
+            />
+          </header>
+          <div className="retro-window__dialog-body">{children}</div>
+        </dialog>
+      )}
     </>
   )
 }

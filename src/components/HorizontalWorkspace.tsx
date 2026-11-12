@@ -14,10 +14,15 @@ export default function HorizontalWorkspace({ children, label }: HorizontalWorks
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.target !== event.currentTarget) return
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
     event.preventDefault()
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    workspaceRef.current?.scrollBy({ left: event.key === 'ArrowRight' ? 100 : -100, behavior: reduceMotion ? 'instant' : 'smooth' })
+    const workspace = workspaceRef.current
+    if (!workspace) return
+    const behavior = reduceMotion ? 'instant' : 'smooth'
+    if (event.key === 'Home') workspace.scrollTo({ left: 0, behavior })
+    else if (event.key === 'End') workspace.scrollTo({ left: workspace.scrollWidth, behavior })
+    else workspace.scrollBy({ left: event.key === 'ArrowRight' ? 100 : -100, behavior })
   }
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
