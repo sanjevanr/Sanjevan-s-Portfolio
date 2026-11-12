@@ -6,6 +6,17 @@
     <meta name="theme-color" content="#bfd96a" />
     <meta name="description" content="Sanjevan Rajasegar — software engineer and photographer in Melbourne, Australia." />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <script>
+      try {
+        const savedTheme = localStorage.getItem('sanjevan-theme')
+        const initialTheme = savedTheme === 'light' || savedTheme === 'dark'
+          ? savedTheme
+          : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        document.documentElement.dataset.theme = initialTheme
+      } catch {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />

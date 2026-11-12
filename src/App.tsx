@@ -1,6 +1,55 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
+import ThemeToggle from './components/ThemeToggle'
+
+type Theme = 'light' | 'dark'
+
+function readStoredTheme(): Theme | null {
+  try {
+    const storedTheme = window.localStorage.getItem('sanjevan-theme')
+    return storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : null
+  } catch {
+    return null
+  }
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState<Theme>(() => {
+    const storedTheme = readStoredTheme()
+    if (storedTheme) return storedTheme
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  })
+  const hasManualPreference = useRef(readStoredTheme() !== null)
+
+  useLayoutEffect(() => {
+    document.documentElement.dataset.theme = theme
+  }, [theme])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const updateFromSystem = (event: MediaQueryListEvent) => {
+      if (!hasManualPreference.current) setTheme(event.matches ? 'dark' : 'light')
+    }
+    mediaQuery.addEventListener('change', updateFromSystem)
+    return () => mediaQuery.removeEventListener('change', updateFromSystem)
+  }, [])
+
+  const toggleTheme = useCallback(() => {
+    setTheme((currentTheme) => {
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark'
+      hasManualPreference.current = true
+      try {
+        window.localStorage.setItem('sanjevan-theme', nextTheme)
+      } catch {
+        // Continue with the in-memory selection when storage is unavailable.
+      }
+      return nextTheme
+    })
+  }, [])
+
+  return { theme, toggleTheme }
+}
 
 const navigation = [
   ['home', '/'],
@@ -76,6 +125,7 @@ function SiteFooter() {
 
 function App() {
   const { pathname } = useLocation()
+  const { theme, toggleTheme } = useTheme()
   const siteRef = useRef<HTMLDivElement>(null)
   useLayoutEffect(() => {
     const site = siteRef.current
@@ -106,6 +156,7 @@ function App() {
   return (
     <div className={`site${pathname === '/' ? ' site--home' : ''}`} ref={siteRef}>
       <MorphingBackground />
+      <ThemeToggle theme={theme} onToggle={toggleTheme} />
       <SiteHeader />
       <div className="site-content">
       <Routes>
