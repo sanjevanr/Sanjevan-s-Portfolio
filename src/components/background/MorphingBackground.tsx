@@ -18,7 +18,7 @@ import '../../styles/morphing-background.css'
 
 const MORPH_DURATION = 450
 const COLUMN_STAGGER = 0.15
-const MOBILE_QUERY = '(max-width: 760px) and (orientation: portrait)'
+const MOBILE_QUERY = '(max-width: 640px) and (orientation: portrait)'
 const HOVER_LIFT = 20
 const SPRING_STIFFNESS = 220
 const SPRING_DAMPING = 18

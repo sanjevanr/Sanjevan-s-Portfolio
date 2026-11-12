@@ -63,7 +63,8 @@ function BottomDock() {
     if (!dock || !site) return
 
     const updateDockHeight = () => {
-      site.style.setProperty('--bottom-dock-height', `${dock.getBoundingClientRect().height}px`)
+      const height = dock.getBoundingClientRect().height
+      site.style.setProperty('--bottom-dock-height', `${height}px`)
     }
     updateDockHeight()
 
