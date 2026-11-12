@@ -45,27 +45,111 @@ a:focus-visible { outline: 3px solid #fff; outline-offset: 5px; border-radius: 2
 .page-shell--coming-soon { justify-content: center; gap: 42px; }
 .coming-soon { margin: 0; font-size: clamp(2rem,5vw,4rem); font-weight: 700; letter-spacing: -.07em; }
 
+@media (max-width: 1024px) {
+  .photo-frame {
+    width: min(74vw, 700px);
+    height: auto;
+    aspect-ratio: 3 / 2;
+    flex: none;
+    min-height: 0;
+    max-height: none;
+    margin: clamp(42px, 7vh, 72px) auto clamp(30px, 5vh, 54px);
+  }
+}
+
 @media (max-width: 760px) {
   .page-shell { width: min(620px, calc(100% - 40px)); padding-top: 42px; padding-bottom: calc(205px + env(safe-area-inset-bottom)); }
   .wordmark { max-width: 100%; font-size: clamp(2.5rem, 7vw, 4rem); white-space: normal; }
-  .photo-frame { min-height: clamp(250px, 58vw, 390px); margin-top: 48px; }
+  .photo-frame { width: min(74vw, 520px); aspect-ratio: 3 / 2; margin-top: 42px; }
   .bottom-dock { bottom: calc(18px + env(safe-area-inset-bottom)); gap: 10px; }
   .site-nav { column-gap: 14px; row-gap: 10px; }
   .site-nav a { font-size: clamp(22px, 5vw, 32px); }
 }
-@media (max-width: 430px) {
-  .page-shell { width: calc(100% - 32px); padding-top: 32px; padding-bottom: calc(210px + env(safe-area-inset-bottom)); }
-  .wordmark { font-size: clamp(2.25rem, 9.5vw, 3.1rem); }
-  .photo-frame { min-height: 250px; margin-top: 42px; margin-bottom: 34px; }
-  .bottom-dock { max-width: calc(100vw - 24px); bottom: calc(14px + env(safe-area-inset-bottom)); gap: 8px; }
-  .site-nav { column-gap: 10px; row-gap: 7px; }
-  .site-nav a { font-size: 22px; }
-  .site-footer { max-width: 100%; font-size: 10px; }
+
+@media (max-width: 640px) {
+  .page-shell {
+    width: calc(100% - 32px);
+    justify-content: center;
+    padding-top: clamp(24px, 6vh, 40px);
+    padding-bottom: calc(var(--bottom-dock-height, 120px) + 30px + env(safe-area-inset-bottom));
+  }
+  .wordmark {
+    max-width: 100%;
+    font-size: clamp(2rem, 7vw, 3rem);
+    line-height: .95;
+    letter-spacing: -.075em;
+    white-space: normal;
+    overflow-wrap: normal;
+  }
+  .photo-frame {
+    width: min(82vw, 500px);
+    height: auto;
+    aspect-ratio: 4 / 3;
+    flex: none;
+    min-height: 0;
+    max-height: none;
+    margin: clamp(34px, 7vh, 58px) auto 0;
+    padding: 6px;
+  }
+  .photo-frame__inner { min-height: 0; }
+  .bottom-dock {
+    width: min(calc(100vw - 32px), 420px);
+    max-width: none;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+  .site-nav {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .site-nav a { font-size: clamp(20px, 5vw, 26px); text-align: center; white-space: nowrap; }
+  .site-nav a:nth-child(1) { grid-column: 1 / 3; }
+  .site-nav a:nth-child(2) { grid-column: 3 / 5; }
+  .site-nav a:nth-child(3) { grid-column: 5 / 7; }
+  .site-nav a:nth-child(4) { grid-column: 2 / 4; }
+  .site-nav a:nth-child(5) { grid-column: 4 / 6; }
+  .site-footer { width: min(100%, 360px); font-size: 10px; line-height: 1.4; gap: 2px; }
+  .page-shell--coming-soon { gap: 30px; }
+}
+
+@media (max-width: 390px) {
+  .page-shell { width: calc(100% - 24px); }
+  .photo-frame { width: min(84vw, 380px); }
+  .bottom-dock { width: calc(100vw - 24px); }
+  .site-nav { column-gap: 4px; }
+  .site-nav a { font-size: clamp(18px, 5vw, 20px); }
+  .site-footer { font-size: 10px; }
 }
 @media (max-height: 620px) {
   .page-shell { padding-top: 24px; padding-bottom: calc(165px + env(safe-area-inset-bottom)); }
-  .photo-frame { min-height: 180px; margin-top: 24px; margin-bottom: 24px; }
+  .photo-frame { margin-top: 24px; margin-bottom: 24px; }
   .bottom-dock { bottom: calc(10px + env(safe-area-inset-bottom)); gap: 6px; }
   .site-nav a { font-size: clamp(20px, 3vh, 28px); }
   .site-footer { font-size: 9px; }
+}
+
+@media (max-height: 620px) and (max-width: 640px) {
+  .page-shell { padding-bottom: calc(var(--bottom-dock-height, 120px) + 30px + env(safe-area-inset-bottom)); }
+}
+
+@media (max-height: 500px) and (max-width: 1024px) {
+  .page-shell { min-height: auto; padding-bottom: 0; }
+  .page-shell--coming-soon { min-height: auto; }
+  .photo-frame { width: min(70vw, 480px); margin: 24px auto; }
+  .bottom-dock {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: min(calc(100vw - 32px), 740px);
+    max-width: none;
+    margin: 16px auto;
+    transform: none;
+  }
+}
+
+@media (max-height: 500px) and (max-width: 640px) {
+  .page-shell { padding-top: 16px; }
+  .photo-frame { width: min(82vw, 360px); }
 }

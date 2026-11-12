@@ -30,11 +30,13 @@
 @keyframes bands-drift { from { transform: translateY(-2%) scale(1.02); } to { transform: translateY(2%) scale(1.02); } }
 
 @media (max-width: 760px) {
-  .morphing-background__stage { width: min(92vw, 52dvh); aspect-ratio: 650 / 1000; }
   .orb--one { width: 62vw; top: -7%; left: -24%; }
   .orb--two { width: 48vw; right: -22%; bottom: 2%; }
   .ring--one { right: -12%; top: 34%; transform: scale(.35); }
   .ring--two, .dot-cluster--two { display: none; }
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  .morphing-background__stage--mobile { width: min(96vw, 74dvh); aspect-ratio: 650 / 1000; }
 }
 @media (max-width: 430px) {
   .dot-cluster--one { top: 21%; left: 3%; transform: scale(.75); }

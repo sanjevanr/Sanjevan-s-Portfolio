@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
 
@@ -54,8 +55,28 @@ function ComingSoonPage() {
 }
 
 function BottomDock() {
+  const dockRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const dock = dockRef.current
+    const site = dock?.closest<HTMLElement>('.site')
+    if (!dock || !site) return
+
+    const updateDockHeight = () => {
+      site.style.setProperty('--bottom-dock-height', `${dock.getBoundingClientRect().height}px`)
+    }
+    updateDockHeight()
+
+    const observer = new ResizeObserver(updateDockHeight)
+    observer.observe(dock)
+    return () => {
+      observer.disconnect()
+      site.style.removeProperty('--bottom-dock-height')
+    }
+  }, [])
+
   return (
-    <div className="bottom-dock">
+    <div className="bottom-dock" ref={dockRef}>
       <Navigation />
       <footer className="site-footer">
         <p>© Sanjevan Rajasegar 2026</p>
