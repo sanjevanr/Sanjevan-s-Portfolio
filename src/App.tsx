@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
-import { NavLink, Route, Routes } from 'react-router-dom'
+import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
 
 const navigation = [
@@ -22,6 +22,15 @@ function Navigation() {
   )
 }
 
+function SiteHeader() {
+  return (
+    <header className="site-header">
+      <h1 className="wordmark">sanjevan rajasegar</h1>
+      <Navigation />
+    </header>
+  )
+}
+
 function PhotoPlaceholder() {
   return (
     <figure className="photo-frame" aria-label="Featured photograph placeholder">
@@ -39,8 +48,7 @@ function PhotoPlaceholder() {
 
 function HomePage() {
   return (
-    <main className="page-shell">
-      <h1 className="wordmark">sanjevan rajasegar</h1>
+    <main className="page-shell page-shell--home">
       <PhotoPlaceholder />
     </main>
   )
@@ -54,46 +62,51 @@ function ComingSoonPage() {
   )
 }
 
-function BottomDock() {
-  const dockRef = useRef<HTMLDivElement>(null)
-
-  useLayoutEffect(() => {
-    const dock = dockRef.current
-    const site = dock?.closest<HTMLElement>('.site')
-    if (!dock || !site) return
-
-    const updateDockHeight = () => {
-      const height = dock.getBoundingClientRect().height
-      site.style.setProperty('--bottom-dock-height', `${height}px`)
-    }
-    updateDockHeight()
-
-    const observer = new ResizeObserver(updateDockHeight)
-    observer.observe(dock)
-    return () => {
-      observer.disconnect()
-      site.style.removeProperty('--bottom-dock-height')
-    }
-  }, [])
-
+function SiteFooter() {
   return (
-    <div className="bottom-dock" ref={dockRef}>
-      <Navigation />
-      <footer className="site-footer">
-        <p>© Sanjevan Rajasegar 2026</p>
-        <p>
-          Website Developed by Sanjevan Rajasegar, Inspired by{' '}
-          <a href="https://www.instagram.com/bicflame" target="_blank" rel="noopener noreferrer">bicflame</a>
-        </p>
-      </footer>
-    </div>
+    <footer className="site-footer">
+      <p>© Sanjevan Rajasegar 2026</p>
+      <p>
+        Website Developed by Sanjevan Rajasegar, Inspired by{' '}
+        <a href="https://www.instagram.com/bicflame" target="_blank" rel="noopener noreferrer">bicflame</a>
+      </p>
+    </footer>
   )
 }
 
 function App() {
+  const { pathname } = useLocation()
+  const siteRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const site = siteRef.current
+    const header = site?.querySelector<HTMLElement>('.site-header')
+    const wordmark = site?.querySelector<HTMLElement>('.site-header .wordmark')
+    const footer = site?.querySelector<HTMLElement>('.site-footer')
+    if (!site || !header || !wordmark || !footer) return
+
+    const updateRegionHeights = () => {
+      site.style.setProperty('--site-header-height', `${header.getBoundingClientRect().height}px`)
+      site.style.setProperty('--site-wordmark-height', `${wordmark.getBoundingClientRect().height}px`)
+      site.style.setProperty('--site-footer-height', `${footer.getBoundingClientRect().height}px`)
+    }
+    updateRegionHeights()
+
+    const observer = new ResizeObserver(updateRegionHeights)
+    observer.observe(header)
+    observer.observe(wordmark)
+    observer.observe(footer)
+    return () => {
+      observer.disconnect()
+      site.style.removeProperty('--site-header-height')
+      site.style.removeProperty('--site-wordmark-height')
+      site.style.removeProperty('--site-footer-height')
+    }
+  }, [])
+
   return (
-    <div className="site">
+    <div className={`site${pathname === '/' ? ' site--home' : ''}`} ref={siteRef}>
       <MorphingBackground />
+      <SiteHeader />
       <div className="site-content">
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -104,7 +117,7 @@ function App() {
         <Route path="*" element={<HomePage />} />
       </Routes>
       </div>
-      <BottomDock />
+      <SiteFooter />
     </div>
   )
 }

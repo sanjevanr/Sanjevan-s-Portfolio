@@ -317,7 +317,7 @@ export default function MorphingBackground() {
       if (reducedMotionRef.current || !visibleRef.current) return
 
       const target = event.target
-      if (target instanceof Element && target.closest('.bottom-dock, .site-content a, .site-content button, .site-content input, .site-content textarea, .site-content select, .site-content [tabindex]')) {
+      if (target instanceof Element && target.closest('.site-nav, .site-footer, .site-content a, .site-content button, .site-content input, .site-content textarea, .site-content select, .site-content [tabindex]')) {
         pointerPositionRef.current = null
         updateHoverTarget(null)
         return
