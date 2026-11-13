@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import audioSource from '../assets/Nujabes - Highs 2 Lows (feat.Cise Starr from CYNE) [Official Audio].mp3'
+import { useHomeAudio } from './HomeAudio'
 
 const bars = Array.from({ length: 16 }, (_, index) => ({
   id: index,
@@ -8,12 +8,6 @@ const bars = Array.from({ length: 16 }, (_, index) => ({
   amplitude: 0.68 + ((index * 17) % 30) / 100,
 }))
 
-let autoplayAttempted = false
-
-function validDuration(value: number) {
-  return Number.isFinite(value) && value > 0 ? value : 0
-}
-
 function formatTime(value: number) {
   if (!Number.isFinite(value) || value < 0) return '0:00'
   const seconds = Math.floor(value)
@@ -21,21 +15,16 @@ function formatTime(value: number) {
 }
 
 export default function SpotifyPlayer() {
-  const audioRef = useRef<HTMLAudioElement>(null)
+  const { audioRef, isPlaying, duration, canSeek, analyser, playbackError, togglePlayback, seekTo } = useHomeAudio()
   const visualizerRef = useRef<HTMLDivElement>(null)
-  const audioContextRef = useRef<AudioContext | null>(null)
-  const analyserRef = useRef<AnalyserNode | null>(null)
-  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(analyser)
   const animationFrameRef = useRef<number | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const [canSeek, setCanSeek] = useState(false)
-  const [hasAnalyser, setHasAnalyser] = useState(false)
   const [isDocumentVisible, setIsDocumentVisible] = useState(() => !document.hidden)
   const [scrubTime, setScrubTime] = useState(0)
   const [isScrubbing, setIsScrubbing] = useState(false)
-  const [playbackError, setPlaybackError] = useState(false)
+
+  analyserRef.current = analyser
 
   const stopVisualizer = useCallback((resetBars = true) => {
     if (animationFrameRef.current !== null) {
@@ -55,7 +44,6 @@ export default function SpotifyPlayer() {
   }, [])
 
   const startVisualizer = useCallback(() => {
-    const analyser = analyserRef.current
     const visualizer = visualizerRef.current
     if (!visualizer || document.hidden || animationFrameRef.current !== null) return
 
@@ -64,7 +52,8 @@ export default function SpotifyPlayer() {
       bar.style.removeProperty('transform')
     })
 
-    if (!analyser) return
+    const activeAnalyser = analyserRef.current
+    if (!activeAnalyser) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       visualizer.querySelectorAll<HTMLElement>('.visualizer-bar__activity').forEach((bar) => {
         bar.style.opacity = '1'
@@ -72,15 +61,16 @@ export default function SpotifyPlayer() {
       return
     }
 
-    const frequencies = new Uint8Array(analyser.frequencyBinCount)
+    const frequencies = new Uint8Array(activeAnalyser.frequencyBinCount)
     let lastPaint = 0
     const draw = (timestamp: number) => {
-      if (!analyserRef.current || !visualizerRef.current) {
+      const analyserNow = analyserRef.current
+      if (!analyserNow || !visualizerRef.current) {
         animationFrameRef.current = null
         return
       }
       if (timestamp - lastPaint >= 50) {
-        analyserRef.current.getByteFrequencyData(frequencies)
+        analyserNow.getByteFrequencyData(frequencies)
         const barsNow = visualizerRef.current.querySelectorAll<HTMLElement>('.visualizer-bar__activity')
         for (let index = 0; index < barsNow.length; index += 1) {
           const binIndex = Math.min(frequencies.length - 1, Math.floor(index * frequencies.length / barsNow.length))
@@ -94,75 +84,25 @@ export default function SpotifyPlayer() {
     animationFrameRef.current = requestAnimationFrame(draw)
   }, [])
 
-  const prepareAnalyser = useCallback(async (audio: HTMLAudioElement) => {
-    if (typeof window.AudioContext === 'undefined') return
-    try {
-      let context = audioContextRef.current
-      if (context?.state === 'closed' && sourceNodeRef.current) {
-        analyserRef.current = null
-        setHasAnalyser(false)
-        return
-      }
-      if (!context || context.state === 'closed') {
-        context = new window.AudioContext()
-        audioContextRef.current = context
-      }
-      if (context.state === 'suspended') await context.resume()
-      if (!sourceNodeRef.current) sourceNodeRef.current = context.createMediaElementSource(audio)
-      if (!analyserRef.current) {
-        const analyser = context.createAnalyser()
-        analyser.fftSize = 64
-        analyser.smoothingTimeConstant = 0.78
-        sourceNodeRef.current.connect(analyser)
-        analyser.connect(context.destination)
-        analyserRef.current = analyser
-      }
-      setHasAnalyser(true)
-    } catch {
-      // Native audio playback still works if Web Audio analysis is unavailable.
-      const context = audioContextRef.current
-      const source = sourceNodeRef.current
-      if (context && source && !analyserRef.current) {
-        try {
-          source.disconnect()
-          source.connect(context.destination)
-        } catch {
-          // Keep native playback errors visible through the audio element.
-        }
-      }
-      analyserRef.current = null
-      setHasAnalyser(false)
-    }
-  }, [])
-
-  useEffect(() => () => {
-    stopVisualizer(false)
-    audioRef.current?.pause()
-    sourceNodeRef.current?.disconnect()
-    analyserRef.current?.disconnect()
-    const context = audioContextRef.current
-    if (context && context.state !== 'closed') void context.close()
-    sourceNodeRef.current = null
-    analyserRef.current = null
-    audioContextRef.current = null
-  }, [stopVisualizer])
+  useEffect(() => () => stopVisualizer(false), [stopVisualizer])
 
   useEffect(() => {
     const audio = audioRef.current
-    if (!audio || autoplayAttempted) return
-    // Defer one tick so React StrictMode's development-only setup/cleanup cycle
-    // does not consume the one autoplay attempt before the page settles.
-    const attempt = window.setTimeout(() => {
-      if (autoplayAttempted) return
-      autoplayAttempted = true
-      void audio.play().then(() => {
-        setIsPlaying(!audio.paused)
-      }).catch(() => {
-        setIsPlaying(false)
-      })
-    }, 0)
-    return () => window.clearTimeout(attempt)
-  }, [])
+    if (!audio) return
+    const syncTime = () => {
+      const time = audio.currentTime
+      if (Number.isFinite(time)) setCurrentTime(time)
+    }
+    syncTime()
+    audio.addEventListener('timeupdate', syncTime)
+    audio.addEventListener('seeked', syncTime)
+    audio.addEventListener('ended', syncTime)
+    return () => {
+      audio.removeEventListener('timeupdate', syncTime)
+      audio.removeEventListener('seeked', syncTime)
+      audio.removeEventListener('ended', syncTime)
+    }
+  }, [audioRef])
 
   useEffect(() => {
     const updateVisibility = () => setIsDocumentVisible(!document.hidden)
@@ -171,73 +111,40 @@ export default function SpotifyPlayer() {
   }, [])
 
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
     if (!isDocumentVisible) stopVisualizer(false)
-    else if (!audio.paused) startVisualizer()
-  }, [isDocumentVisible, startVisualizer, stopVisualizer])
+    else if (isPlaying) startVisualizer()
+    else stopVisualizer()
+  }, [analyser, isDocumentVisible, isPlaying, startVisualizer, stopVisualizer])
 
   useEffect(() => {
-    const audio = audioRef.current
     const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
     const updateMotion = () => {
       if (motionPreference.matches) {
         stopVisualizer(false)
-        if (!audio?.paused) {
+        if (isPlaying) {
           visualizerRef.current?.querySelectorAll<HTMLElement>('.visualizer-bar__activity').forEach((bar) => {
             bar.style.opacity = '1'
           })
         }
-      } else if (audio && !audio.paused && isDocumentVisible) {
+      } else if (isPlaying && isDocumentVisible) {
         startVisualizer()
       }
     }
     motionPreference.addEventListener('change', updateMotion)
     return () => motionPreference.removeEventListener('change', updateMotion)
-  }, [isDocumentVisible, startVisualizer, stopVisualizer])
+  }, [isDocumentVisible, isPlaying, startVisualizer, stopVisualizer])
 
-  const togglePlayback = async () => {
-    const audio = audioRef.current
-    if (!audio) return
-    autoplayAttempted = true
-    if (!audio.paused) {
-      audio.pause()
-      return
-    }
-
-    await prepareAnalyser(audio)
-    try {
-      await audio.play()
-      setPlaybackError(false)
-    } catch {
-      setIsPlaying(false)
-      stopVisualizer()
-      setPlaybackError(true)
-    }
+  const seekBy = (offset: number) => {
+    const time = (audioRef.current?.currentTime ?? currentTime) + offset
+    seekTo(time)
+    setCurrentTime(Math.max(0, time))
+    setScrubTime(Math.max(0, time))
   }
-
-  const seekTo = (time: number) => {
-    const audio = audioRef.current
-    const availableDuration = validDuration(audio?.duration ?? duration)
-    if (!audio || !availableDuration || audio.seekable.length === 0) return
-    const nextTime = Math.min(availableDuration, Math.max(0, time))
-    audio.currentTime = nextTime
-    setCurrentTime(nextTime)
-    setScrubTime(nextTime)
-  }
-
-  const seekBy = (offset: number) => seekTo((audioRef.current?.currentTime ?? currentTime) + offset)
   const progress = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0
   const sliderValue = isScrubbing ? scrubTime : currentTime
 
-  const updateMetadata = (audio: HTMLAudioElement) => {
-    const nextDuration = validDuration(audio.duration)
-    setDuration(nextDuration)
-    setCanSeek(nextDuration > 0 && audio.seekable.length > 0)
-  }
-
   return (
-    <section className={`spotify-player${isPlaying ? ' spotify-player--playing' : ' spotify-player--paused'}${hasAnalyser ? ' spotify-player--analyser' : ''}${isDocumentVisible ? '' : ' spotify-player--hidden'}`} aria-label="Now playing Highs 2 Lows by Nujabes">
+    <section className={`spotify-player${isPlaying ? ' spotify-player--playing' : ' spotify-player--paused'}${analyser ? ' spotify-player--analyser' : ''}${isDocumentVisible ? '' : ' spotify-player--hidden'}`} aria-label="Now playing Highs 2 Lows by Nujabes">
       <div className="spotify-player__art" aria-hidden="true">
         <img src="/nujabes-album-cover.jpg" alt="" />
       </div>
@@ -273,7 +180,7 @@ export default function SpotifyPlayer() {
           aria-label={isPlaying ? 'Pause playback' : 'Play playback'}
           title={isPlaying ? 'Pause' : 'Play'}
           aria-pressed={isPlaying}
-          onClick={togglePlayback}
+          onClick={() => { void togglePlayback() }}
         >
           <span aria-hidden="true">{isPlaying ? 'Ⅱ' : '▶'}</span>
         </button>
@@ -303,6 +210,7 @@ export default function SpotifyPlayer() {
           onChange={(event) => {
             const nextTime = Number(event.currentTarget.value)
             setScrubTime(nextTime)
+            setCurrentTime(nextTime)
             seekTo(nextTime)
           }}
         />
@@ -310,38 +218,6 @@ export default function SpotifyPlayer() {
       </div>
 
       {playbackError && <p className="spotify-player__error" role="status">Playback could not start. Try again.</p>}
-
-      <audio
-        ref={audioRef}
-        src={audioSource}
-        preload="metadata"
-        onLoadedMetadata={(event) => updateMetadata(event.currentTarget)}
-        onDurationChange={(event) => updateMetadata(event.currentTarget)}
-        onProgress={(event) => updateMetadata(event.currentTarget)}
-        onCanPlay={(event) => updateMetadata(event.currentTarget)}
-        onTimeUpdate={(event) => {
-          const time = event.currentTarget.currentTime
-          if (Number.isFinite(time)) setCurrentTime(time)
-        }}
-        onPlay={() => {
-          setIsPlaying(true)
-          startVisualizer()
-        }}
-        onPause={() => {
-          setIsPlaying(false)
-          stopVisualizer()
-        }}
-        onEnded={(event) => {
-          setIsPlaying(false)
-          setCurrentTime(validDuration(event.currentTarget.duration))
-          stopVisualizer()
-        }}
-        onError={() => {
-          setIsPlaying(false)
-          stopVisualizer()
-          setPlaybackError(true)
-        }}
-      />
     </section>
   )
 }

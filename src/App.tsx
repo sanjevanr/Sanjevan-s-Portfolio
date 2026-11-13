@@ -6,6 +6,8 @@ import HorizontalWorkspace from './components/HorizontalWorkspace'
 import { IntroPanel } from './components/IntroPanel'
 import PhotoPanel from './components/PhotoPanel'
 import RetroWindow from './components/RetroWindow'
+import { HomeAudioProvider, mobileHomeQuery } from './components/HomeAudio'
+import SocialBrowser from './components/SocialBrowser'
 import SpotifyPlayer from './components/SpotifyPlayer'
 import ThemeToggle from './components/ThemeToggle'
 import YouTubePreview from './components/YouTubePreview'
@@ -66,6 +68,9 @@ const navigation = [
   ['contact', '/contact'],
 ] as const
 
+const BASE_DESKTOP_SCALE = 0.8
+const DESKTOP_CANVAS_WIDTH = 1460
+
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
 
@@ -115,36 +120,101 @@ function CollagePanels() {
       <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} maximiseIndicatorOnly className="retro-window--spotify">
         <SpotifyPlayer />
       </RetroWindow>
+      <SocialBrowser />
     </>
   )
 }
 
 function HomePage() {
-  const isMobile = useMediaQuery('(max-width: 760px)')
-  const isTablet = useMediaQuery('(min-width: 761px) and (max-width: 1199px)')
+  const isMobile = useMediaQuery(mobileHomeQuery)
+  const isTablet = useMediaQuery('(min-width: 761px) and (max-width: 1199px), (min-width: 600px) and (max-width: 760px) and (min-height: 1000px), (min-width: 1200px) and (max-width: 1230px) and (min-height: 800px), (min-width: 1231px) and (max-width: 1440px) and (min-height: 901px)')
   const pageRef = useRef<HTMLElement>(null)
-  const [collageScale, setCollageScale] = useState(1)
+  const desktopCanvasRef = useRef<HTMLDivElement>(null)
+  const desktopCollageRef = useRef<HTMLDivElement>(null)
+  const [desktopRegion, setDesktopRegion] = useState({ width: 0, height: 0 })
+  const [desktopLayout, setDesktopLayout] = useState({ scale: BASE_DESKTOP_SCALE, offsetX: 180, offsetY: 0, boundsWidth: DESKTOP_CANVAS_WIDTH, boundsHeight: 620 })
 
   useLayoutEffect(() => {
     const page = pageRef.current
-    if (!page || !isTablet) return
+    if (!page || isMobile || isTablet) return
 
-    const updateScale = () => {
+    const updateRegion = () => {
       const style = window.getComputedStyle(page)
+      const workspace = page.querySelector<HTMLElement>('.horizontal-workspace')
+      const workspaceStyle = workspace ? window.getComputedStyle(workspace) : null
       const horizontalPadding = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight)
       const verticalPadding = Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom)
-      const availableWidth = page.clientWidth - horizontalPadding
-      const availableHeight = page.clientHeight - verticalPadding
+      const workspaceHorizontalPadding = workspaceStyle
+        ? Number.parseFloat(workspaceStyle.paddingLeft) + Number.parseFloat(workspaceStyle.paddingRight)
+        : 0
+      const workspaceVerticalPadding = workspaceStyle
+        ? Number.parseFloat(workspaceStyle.paddingTop) + Number.parseFloat(workspaceStyle.paddingBottom)
+        : 0
+      const availableWidth = page.clientWidth - horizontalPadding - workspaceHorizontalPadding
+      const availableHeight = page.clientHeight - verticalPadding - workspaceVerticalPadding
       if (availableWidth <= 0 || availableHeight <= 0) return
-      const nextScale = Math.min(1, Math.max(0.7, availableWidth / 1180), availableHeight / 620)
-      setCollageScale((current) => Math.abs(current - nextScale) < 0.005 ? current : nextScale)
+      setDesktopRegion((current) => Math.abs(current.width - availableWidth) < 1 && Math.abs(current.height - availableHeight) < 1
+        ? current
+        : { width: availableWidth, height: availableHeight })
     }
 
-    updateScale()
-    const observer = new ResizeObserver(updateScale)
+    updateRegion()
+    const observer = new ResizeObserver(updateRegion)
     observer.observe(page)
+    const workspace = page.querySelector('.horizontal-workspace')
+    if (workspace) observer.observe(workspace)
     return () => observer.disconnect()
-  }, [isTablet])
+  }, [isMobile, isTablet])
+
+  useLayoutEffect(() => {
+    const collage = desktopCollageRef.current
+    if (!collage || isMobile || isTablet || desktopRegion.width <= 0 || desktopRegion.height <= 0) return
+
+    const measureBounds = () => {
+      const canvas = desktopCanvasRef.current
+      const currentScale = desktopLayout.scale || BASE_DESKTOP_SCALE
+      const collageRect = collage.getBoundingClientRect()
+      let minX = Number.POSITIVE_INFINITY
+      let minY = Number.POSITIVE_INFINITY
+      let maxX = Number.NEGATIVE_INFINITY
+      let maxY = Number.NEGATIVE_INFINITY
+
+      for (const child of Array.from(collage.children)) {
+        if (!(child instanceof HTMLElement) || child.tagName === 'DIALOG') continue
+        const rect = child.getBoundingClientRect()
+        if (rect.width <= 0 || rect.height <= 0 || getComputedStyle(child).visibility === 'hidden') continue
+        minX = Math.min(minX, (rect.left - collageRect.left) / currentScale)
+        minY = Math.min(minY, (rect.top - collageRect.top) / currentScale)
+        maxX = Math.max(maxX, (rect.right - collageRect.left) / currentScale)
+        maxY = Math.max(maxY, (rect.bottom - collageRect.top) / currentScale)
+      }
+      if (!Number.isFinite(minX) || !Number.isFinite(minY)) return
+
+      const boundsWidth = Math.max(1, maxX - minX)
+      const boundsHeight = Math.max(1, maxY - minY)
+      const scale = Math.min(BASE_DESKTOP_SCALE, desktopRegion.width / boundsWidth, desktopRegion.height / boundsHeight)
+      const offsetX = -minX
+      const offsetY = -minY + (desktopRegion.height / scale - boundsHeight) / 2
+      setDesktopLayout((current) => {
+        if (Math.abs(current.scale - scale) < 0.002 && Math.abs(current.offsetX - offsetX) < 0.5 && Math.abs(current.offsetY - offsetY) < 0.5 && Math.abs(current.boundsWidth - boundsWidth) < 1 && Math.abs(current.boundsHeight - boundsHeight) < 1) return current
+        return { scale, offsetX, offsetY, boundsWidth, boundsHeight }
+      })
+      if (canvas) canvas.style.height = `${desktopRegion.height / BASE_DESKTOP_SCALE}px`
+    }
+
+    measureBounds()
+    const resizeObserver = new ResizeObserver(measureBounds)
+    resizeObserver.observe(collage)
+    for (const child of Array.from(collage.children)) {
+      if (child instanceof HTMLElement && child.tagName !== 'DIALOG') resizeObserver.observe(child)
+    }
+    const mutationObserver = new MutationObserver(measureBounds)
+    mutationObserver.observe(collage, { childList: true })
+    return () => {
+      resizeObserver.disconnect()
+      mutationObserver.disconnect()
+    }
+  }, [desktopRegion, desktopLayout.scale, isMobile, isTablet])
 
   return (
     <main ref={pageRef} className="page-shell page-shell--home">
@@ -158,12 +228,31 @@ function HomePage() {
       ) : (
         <HorizontalWorkspace label="Homepage panels. Scroll horizontally to browse.">
           {isTablet ? (
-            <div className="collage-scale-stage" style={{ width: 1180 * collageScale, height: 620 * collageScale }}>
-              <div className="moodboard-collage moodboard-collage--tablet" style={{ transform: `translate(-50%, -50%) scale(${collageScale})` }}>
+            <div className="collage-scale-stage--tablet">
+              <div className="moodboard-collage moodboard-collage--tablet">
                 <CollagePanels />
               </div>
             </div>
-          ) : <div className="moodboard-collage"><CollagePanels /></div>}
+          ) : (
+            <div
+              className="collage-scale-stage--desktop"
+              style={{ width: desktopLayout.boundsWidth * desktopLayout.scale, height: desktopRegion.height }}
+            >
+              <div
+                ref={desktopCanvasRef}
+                className="collage-scale-canvas--desktop"
+                style={{ width: DESKTOP_CANVAS_WIDTH, height: desktopRegion.height / BASE_DESKTOP_SCALE, transform: `scale(${desktopLayout.scale})` }}
+              >
+                <div
+                  ref={desktopCollageRef}
+                  className="moodboard-collage moodboard-collage--desktop"
+                  style={{ left: desktopLayout.offsetX, top: desktopLayout.offsetY }}
+                >
+                  <CollagePanels />
+                </div>
+              </div>
+            </div>
+          )}
         </HorizontalWorkspace>
       )}
     </main>
@@ -221,22 +310,27 @@ function App() {
   }, [])
 
   return (
+    <HomeAudioProvider>
     <div className={`site${pathname === '/' ? ' site--home' : ''}`} ref={siteRef}>
       <MorphingBackground />
       <ThemeToggle theme={theme} onToggle={toggleTheme} />
       <SiteHeader />
       <div className="site-content">
+      <div className={`home-route${pathname === '/' ? '' : ' home-route--inactive'}`} aria-hidden={pathname !== '/'}>
+        <HomePage />
+      </div>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={null} />
         <Route path="/projects" element={<ComingSoonPage />} />
         <Route path="/photography" element={<ComingSoonPage />} />
         <Route path="/about" element={<ComingSoonPage />} />
         <Route path="/contact" element={<ComingSoonPage />} />
-        <Route path="*" element={<HomePage />} />
+        <Route path="*" element={<ComingSoonPage />} />
       </Routes>
       </div>
       <SiteFooter />
     </div>
+    </HomeAudioProvider>
   )
 }
 
