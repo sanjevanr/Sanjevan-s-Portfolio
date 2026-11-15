@@ -81,9 +81,9 @@ export const projects: PortfolioProject[] = [
     githubUrl: 'https://github.com/Monash-FIT3170/2026W2-Roam.io',
     links: [{ label: 'VIEW LANDING PAGE', shortLabel: 'WEBSITE', url: 'https://roamio-landing-page-gamma.vercel.app/' }],
     media: publicMedia('Roam.io', 'roam.io', [
+      'roam.io_team_photo.png',
       'social-feed_roam.io.png',
       'milestones_roam.io.png',
-      'roam.io_team_photo.png',
       'hazard_video.mp4',
     ]),
   },

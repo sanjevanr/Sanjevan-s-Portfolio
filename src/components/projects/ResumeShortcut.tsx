@@ -2,7 +2,7 @@ export default function ResumeShortcut() {
   return (
     <a
       className="resume-shortcut resume-shortcut--utility"
-      href="/resume.pdf"
+      href="/sanjevan-rajasegar-resume.pdf"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Open Sanjevan Rajasegar's resume PDF"

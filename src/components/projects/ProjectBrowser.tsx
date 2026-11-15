@@ -211,7 +211,7 @@ function MediaViewer({
   )
 }
 
-function NeighbourPreview({ item }: { item: ProjectMedia }) {
+function MediaThumbnail({ item }: { item: ProjectMedia }) {
   if (item.type === 'youtube') return <YouTubeThumbnail videoId={item.videoId} />
   if (item.type === 'video') return <video src={item.src} muted playsInline preload="metadata" tabIndex={-1} aria-hidden="true" />
   return <img src={item.src} alt="" draggable={false} />
@@ -231,6 +231,7 @@ function Media({
   const [playingKey, setPlayingKey] = useState<string | null>(null)
   const expandButtonRef = useRef<HTMLButtonElement>(null)
   const inlineVideoRef = useRef<HTMLVideoElement>(null)
+  const thumbnailRefs = useRef<Array<HTMLButtonElement | null>>([])
   const touchStartX = useRef<number | null>(null)
   const index = Math.max(0, Math.min(selectedIndex, media.length - 1))
   const current = media[index]
@@ -239,6 +240,10 @@ function Media({
     setViewerOpen(false)
     setPlayingKey(null)
   }, [project.id])
+
+  useEffect(() => {
+    thumbnailRefs.current[index]?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }, [index])
 
   if (media.length === 0) return <p className="project-browser__placeholder">{project.id === 'unilinq' ? 'MEDIA COMING SOON' : projectMediaPlaceholder}</p>
 
@@ -256,8 +261,6 @@ function Media({
     requestAnimationFrame(() => expandButtonRef.current?.focus())
   }
   const label = mediaLabel(current)
-  const previous = media[(index - 1 + media.length) % media.length]
-  const next = media[(index + 1) % media.length]
 
   return (
     <>
@@ -281,32 +284,38 @@ function Media({
         onPointerCancel={() => { touchStartX.current = null }}
       >
         <div className="project-media__stage">
-          {media.length > 1 && (
-            <button className="project-media__neighbour project-media__neighbour--previous" type="button" onClick={() => select(index - 1)} aria-label={`Show ${mediaLabel(previous)}`}>
-              <NeighbourPreview item={previous} />
-            </button>
-          )}
           <div className={`project-media__current project-media__current--${current.type}${current.type === 'image' ? '' : ' project-media__current--player'}`}>
             {current.type === 'image' && <img key={current.src} src={current.src} alt={current.alt ?? label} draggable={false} onClick={openViewer} />}
             {current.type === 'video' && <video key={current.src} ref={inlineVideoRef} src={current.src} controls playsInline preload="metadata" aria-label={current.alt ?? label} />}
             {current.type === 'youtube' && <YouTubeSlide key={current.videoId} item={current} playing={playingKey === current.videoId} onPlay={() => setPlayingKey(current.videoId)} />}
             <ExpandButton buttonRef={expandButtonRef} onClick={openViewer} />
           </div>
-          {media.length > 1 && (
-            <button className="project-media__neighbour project-media__neighbour--next" type="button" onClick={() => select(index + 1)} aria-label={`Show ${mediaLabel(next)}`}>
-              <NeighbourPreview item={next} />
-            </button>
-          )}
         </div>
-        <div className="project-media__controls">
-          {media.length > 1 && <button type="button" className="project-media__arrow" onClick={() => select(index - 1)} aria-label="Previous media">‹</button>}
-          <span aria-live="polite">{String(index + 1).padStart(2, '0')} / {String(media.length).padStart(2, '0')}</span>
-          {media.length > 1 && <button type="button" className="project-media__arrow" onClick={() => select(index + 1)} aria-label="Next media">›</button>}
-        </div>
-        <div className="project-media__caption">
+        <div className="project-media__meta">
           <h3>{label}</h3>
-          {current.description && <p>{current.description}</p>}
+          <div className="project-media__controls">
+            {media.length > 1 && <button type="button" className="project-media__arrow" onClick={() => select(index - 1)} aria-label="Previous media">‹</button>}
+            <span aria-live="polite">{String(index + 1).padStart(2, '0')} / {String(media.length).padStart(2, '0')}</span>
+            {media.length > 1 && <button type="button" className="project-media__arrow" onClick={() => select(index + 1)} aria-label="Next media">›</button>}
+          </div>
         </div>
+        {media.length > 1 && (
+          <div className="project-media__filmstrip" role="group" aria-label="Choose media">
+            {media.map((item, itemIndex) => (
+              <button
+                key={item.type === 'youtube' ? item.videoId : item.src}
+                ref={(node) => { thumbnailRefs.current[itemIndex] = node }}
+                type="button"
+                className="project-media__thumbnail"
+                aria-label={`Show ${mediaLabel(item)}`}
+                aria-pressed={itemIndex === index}
+                onClick={() => select(itemIndex)}
+              >
+                <MediaThumbnail item={item} />
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {viewerOpen && <MediaViewer items={media} index={index} onSelect={select} onClose={closeViewer} />}
@@ -505,7 +514,7 @@ export default function ProjectBrowser({ project, activeTab, onTabChange, compac
         </div>
       </header>
       <div className="retro-window__body project-browser__viewport">
-        <div ref={scrollerRef} className="project-browser__scroller">
+        <div ref={scrollerRef} className={`project-browser__scroller${activeTab === 'media' ? ' project-browser__scroller--media' : ''}`}>
           <div
             key={activeTab}
             id={`${baseId}-panel`}
