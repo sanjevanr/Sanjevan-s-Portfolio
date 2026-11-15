@@ -9,6 +9,7 @@ type WindowControlsProps = {
   closeDisabled?: boolean
   onClose?: () => void
   closeLabel?: string
+  disabled?: boolean
 }
 
 export default function WindowControls({
@@ -20,18 +21,19 @@ export default function WindowControls({
   closeDisabled = false,
   onClose,
   closeLabel,
+  disabled = false,
 }: WindowControlsProps) {
   const panelName = title.toLowerCase()
   const hasInteractiveControl = showMaximise || closeDisabled || Boolean(onClose)
 
   return (
     <div
-      className="window-controls"
+      className={`window-controls${disabled ? ' window-controls--disabled' : ''}`}
       {...(hasInteractiveControl
         ? { role: 'group' as const, 'aria-label': `${title} window controls` }
         : { 'aria-hidden': true })}
     >
-      {onClose ? (
+      {onClose && !disabled ? (
         <button
           className="window-control window-control--close window-control--close--interactive"
           type="button"
@@ -39,7 +41,7 @@ export default function WindowControls({
           title={closeLabel ?? `Close ${panelName} window`}
           onClick={onClose}
         />
-      ) : closeDisabled ? (
+      ) : closeDisabled || disabled ? (
         <button
           className="window-control window-control--close window-control--close--disabled"
           type="button"
@@ -56,7 +58,8 @@ export default function WindowControls({
           className="window-control window-control--maximise"
           type="button"
           aria-label={`${expanded ? 'Restore' : 'Maximise'} ${panelName} panel`}
-          title={`${expanded ? 'Restore' : 'Maximise'} ${panelName} panel`}
+          title={disabled ? 'Unavailable' : `${expanded ? 'Restore' : 'Maximise'} ${panelName} panel`}
+          disabled={disabled}
           onClick={onMaximise}
         />
       )}

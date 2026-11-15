@@ -6,7 +6,7 @@ import HorizontalWorkspace from './components/HorizontalWorkspace'
 import { IntroPanel } from './components/IntroPanel'
 import PhotoPanel from './components/PhotoPanel'
 import RetroWindow from './components/RetroWindow'
-import { HomeAudioProvider, mobileHomeQuery } from './components/HomeAudio'
+import { HomeAudioProvider, mobileHomeQuery, useMediaQuery } from './components/HomeAudio'
 import EnterSiteButton from './components/EnterSiteButton'
 import SocialBrowser from './components/SocialBrowser'
 import SpotifyPlayer from './components/SpotifyPlayer'
@@ -70,20 +70,6 @@ const BASE_DESKTOP_SCALE = 0.8
 const MIN_READABLE_COLLAGE_SCALE = 0.55
 const DESKTOP_CANVAS_WIDTH = 1460
 const TABLET_CANVAS_WIDTH = 1100
-
-function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(query)
-    const update = () => setMatches(mediaQuery.matches)
-    update()
-    mediaQuery.addEventListener('change', update)
-    return () => mediaQuery.removeEventListener('change', update)
-  }, [query])
-
-  return matches
-}
 
 function Navigation() {
   return (
@@ -154,7 +140,7 @@ function HomePage() {
       } else if (isTablet) {
         scale = homeIsVisible && tabletRegion.width > 0
           ? tabletLayout.scale
-          : Math.min(1, (window.innerWidth - 80) / 1300, (window.innerHeight - 200) / 1000)
+          : Math.min(1, (window.innerWidth - 80) / 1100, (window.innerHeight - 220) / 840)
       } else {
         scale = homeIsVisible && desktopRegion.width > 0
           ? desktopLayout.scale
@@ -458,7 +444,7 @@ function App() {
       <MorphingBackground />
       <SiteHeader theme={theme} onToggleTheme={toggleTheme} />
       <div className="site-content">
-      <div className={`home-route${pathname === '/' ? '' : ' home-route--inactive'}`} aria-hidden={pathname !== '/'}>
+      <div className={`home-route${pathname === '/' ? '' : ' home-route--inactive'}`} aria-hidden={pathname !== '/' ? true : undefined} inert={pathname !== '/' ? true : undefined}>
         <HomePage />
       </div>
       <Routes>

@@ -1,6 +1,8 @@
 export interface PortfolioProject {
   id: string
   title: string
+  /** Explorer label on phones. Defaults to the title. */
+  shortTitle?: string
   technologies: string[]
   summary: string
   highlights: string[]
@@ -9,6 +11,8 @@ export interface PortfolioProject {
   githubUrl: string
   links?: {
     label: string
+    /** Button label on phones. */
+    shortLabel: string
     url: string
   }[]
   media: {
@@ -46,6 +50,7 @@ export const projects: PortfolioProject[] = [
   {
     id: 'muas-website',
     title: 'MUAS Website',
+    shortTitle: 'MUAS',
     technologies: ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Three.js', 'React Three Fiber', 'Resend'],
     summary: 'A public-facing website for Monash Uncrewed Aerial Systems, presenting its engineering work, competitions, teams and activities.',
     highlights: [
@@ -72,6 +77,7 @@ export const projects: PortfolioProject[] = [
   {
     id: 'fit3155-algorithms',
     title: 'FIT3155 Algorithms',
+    shortTitle: 'FIT3155',
     technologies: ['Python', 'Algorithm Design', 'Data Structures'],
     summary: 'An exploration of advanced algorithms and data structures studied and applied throughout FIT3155 at Monash University. As one of the most challenging units in my degree, it pushed me to strengthen my understanding of algorithm design, optimisation, and problem-solving through practical Python implementations.',
     highlights: [
@@ -110,7 +116,7 @@ export const projects: PortfolioProject[] = [
       'Rapid prototyping',
     ],
     githubUrl: 'https://github.com/Amar723/UniHack-Team-YVL',
-    links: [{ label: 'VIEW ON DEVPOST ↗', url: 'https://devpost.com/software/spotto' }],
+    links: [{ label: 'VIEW ON DEVPOST', shortLabel: 'DEVPOST', url: 'https://devpost.com/software/spotto' }],
     media: [],
   },
 ]

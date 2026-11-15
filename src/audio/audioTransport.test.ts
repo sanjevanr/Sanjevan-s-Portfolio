@@ -86,7 +86,7 @@ function harness(pathname: string) {
   const activate = (next: AudioControllerState) => {
     transport.activate(next.activeTrackId ? sources[next.activeTrackId] : null, activeWantsPlayback(next), next.operationId)
   }
-  const navigate = (trackId: 'home' | 'projects') => activate(apply({ type: 'routeChanged', trackId }))
+  const navigate = (trackId: 'home' | 'projects' | null) => activate(apply({ type: 'routeChanged', trackId }))
   const toggle = () => {
     if (state.actualPlayback === 'playing') transport.pause(apply({ type: 'userPause' }).operationId)
     else transport.playFromGesture(apply({ type: 'userPlay' }).operationId)
@@ -176,6 +176,34 @@ describe('AudioTransport with the reducer', () => {
     await flush()
     expect(h.state.actualPlayback).toBe('playing')
     expect(h.media.src).toBe(sources.projects)
+  })
+
+  it('switching to a phone pauses playback and a late play result cannot restart it', async () => {
+    const h = harness('/')
+    await flush()
+    h.navigate(null)
+    h.media.autoResolve = false
+    h.navigate('home')
+    const pending = h.media.plays.at(-1)!
+    h.navigate(null)
+    pending.resolve()
+    await flush()
+    expect(h.media.paused).toBe(true)
+    expect(h.state.actualPlayback).toBe('paused')
+    expect(h.state.tracks.home.desiredPlayback).toBe('playing')
+  })
+
+  it('a phone stops a playing track and resizing back resumes it', async () => {
+    const h = harness('/projects')
+    await flush()
+    expect(h.media.paused).toBe(false)
+    h.navigate(null)
+    await flush()
+    expect(h.media.paused).toBe(true)
+    h.navigate('projects')
+    await flush()
+    expect(h.media.paused).toBe(false)
+    expect(h.state.actualPlayback).toBe('playing')
   })
 
   it('reports blocked autoplay without changing the saved preference', async () => {

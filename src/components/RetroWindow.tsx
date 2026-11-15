@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import WindowControls from './WindowControls'
 import useWindowController from '../hooks/useWindowController'
 
@@ -13,6 +13,7 @@ type RetroWindowProps = {
   singleContentMount?: boolean
   disableCloseControl?: boolean
   expandedCloseWithRedButton?: boolean
+  controlsDisabled?: boolean
 }
 
 export default function RetroWindow({
@@ -26,6 +27,7 @@ export default function RetroWindow({
   singleContentMount = false,
   disableCloseControl = false,
   expandedCloseWithRedButton = false,
+  controlsDisabled = false,
 }: RetroWindowProps) {
   const {
     dialogRef,
@@ -47,6 +49,10 @@ export default function RetroWindow({
     handleDialogClose()
   }
 
+  useEffect(() => {
+    if (controlsDisabled) dialogRef.current?.close()
+  }, [controlsDisabled, dialogRef])
+
   return (
     <>
       <section className={classes} aria-label={accessibleLabel}>
@@ -58,6 +64,7 @@ export default function RetroWindow({
               maximiseRef={maximiseButtonRef}
               onMaximise={openWindowDialog}
               closeDisabled={disableCloseControl}
+              disabled={controlsDisabled}
             />
           )}
           {showTitle && <h2 className="retro-window__title">{title}</h2>}

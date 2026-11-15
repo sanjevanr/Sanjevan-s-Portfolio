@@ -1,9 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { useLocation } from 'react-router-dom'
-import { activeWantsPlayback, audioReducer, createInitialState, type ActualPlayback, type AudioAction, type AudioControllerState } from '../audio/audioState'
+import { activeWantsPlayback, audioReducer, createInitialState, permittedTrackId, type ActualPlayback, type AudioAction, type AudioControllerState } from '../audio/audioState'
 import { AudioTransport, type TransportReport } from '../audio/audioTransport'
 import { homeTrack, trackIdForPath, tracksById, type SiteTrack } from '../data/tracks'
 
+/* Must match the CSS phone query:
+   @media (max-width: 760px) and (max-height: 999px), (max-width: 599px) */
 export const mobileHomeQuery = '(max-width: 599px), (max-width: 760px) and (max-height: 999px)'
 
 type HomeAudioContextValue = {
@@ -13,6 +15,7 @@ type HomeAudioContextValue = {
   isPlaying: boolean
   isLoading: boolean
   isBlocked: boolean
+  isAvailable: boolean
   duration: number
   canSeek: boolean
   analyser: AnalyserNode | null
@@ -31,6 +34,18 @@ function readAudioState(context: AudioContext) {
   return context.state
 }
 
+export function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    const update = () => setMatches(media.matches)
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [query])
+  return matches
+}
+
 const devLog = import.meta.env.DEV
   ? (message: string, details?: unknown) => console.debug(message, { route: window.location.pathname, ...(details && typeof details === 'object' && !(details instanceof Error) ? details : { details }) })
   : undefined
@@ -45,7 +60,8 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   const transportRef = useRef<AudioTransport | null>(null)
   const { pathname } = useLocation()
   const routeTrackId = trackIdForPath(pathname)
-  const [state, setState] = useState<AudioControllerState>(() => createInitialState(pathname))
+  const isPhone = useMediaQuery(mobileHomeQuery)
+  const [state, setState] = useState<AudioControllerState>(() => createInitialState(pathname, isPhone))
   const stateRef = useRef(state)
   const [duration, setDuration] = useState(0)
   const [canSeek, setCanSeek] = useState(false)
@@ -150,10 +166,10 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const transport = transportRef.current
     if (!transport) return
-    const next = apply({ type: 'routeChanged', trackId: routeTrackId })
+    const next = apply({ type: 'routeChanged', trackId: permittedTrackId(routeTrackId, isPhone) })
     const trackId = next.activeTrackId
     transport.activate(trackId ? tracksById[trackId].src : null, activeWantsPlayback(next), next.operationId)
-  }, [apply, routeTrackId])
+  }, [apply, isPhone, routeTrackId])
 
   const togglePlayback = useCallback(() => {
     const transport = transportRef.current
@@ -185,13 +201,14 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     isPlaying: actualPlayback === 'playing',
     isLoading: actualPlayback === 'loading' && wantsPlayback,
     isBlocked: actualPlayback === 'blocked' && wantsPlayback,
+    isAvailable: state.activeTrackId !== null,
     duration,
-    canSeek,
+    canSeek: canSeek && state.activeTrackId !== null,
     analyser,
     playbackError: actualPlayback === 'error',
     togglePlayback,
     seekTo,
-  }), [actualPlayback, analyser, canSeek, duration, seekTo, togglePlayback, track, wantsPlayback])
+  }), [actualPlayback, analyser, canSeek, duration, seekTo, state.activeTrackId, togglePlayback, track, wantsPlayback])
 
   return (
     <HomeAudioContext.Provider value={value}>

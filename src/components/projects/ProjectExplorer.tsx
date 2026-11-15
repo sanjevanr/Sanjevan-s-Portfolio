@@ -5,9 +5,10 @@ type ProjectExplorerProps = {
   projects: PortfolioProject[]
   selectedId: string
   onSelect: (id: string) => void
+  compact: boolean
 }
 
-export default function ProjectExplorer({ projects, selectedId, onSelect }: ProjectExplorerProps) {
+export default function ProjectExplorer({ projects, selectedId, onSelect, compact }: ProjectExplorerProps) {
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -39,10 +40,12 @@ export default function ProjectExplorer({ projects, selectedId, onSelect }: Proj
               role="option"
               aria-selected={selected}
               tabIndex={selected ? 0 : -1}
+              title={project.title}
+              aria-label={project.title}
               onClick={() => onSelect(project.id)}
             >
               <span className="project-explorer__folder" aria-hidden="true" />
-              <span className="project-explorer__name">{project.title}</span>
+              <span className="project-explorer__name">{compact ? project.shortTitle ?? project.title : project.title}</span>
             </button>
           )
         })}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { projects } from '../../data/projects'
+import { mobileHomeQuery, useMediaQuery } from '../HomeAudio'
 import RetroWindow from '../RetroWindow'
 import SpotifyPlayer from '../SpotifyPlayer'
 import ProjectBrowser, { type ProjectBrowserTab } from './ProjectBrowser'
@@ -8,6 +9,7 @@ import ProjectExplorer from './ProjectExplorer'
 export default function ProjectsPage() {
   const [selectedId, setSelectedId] = useState(projects[0].id)
   const [activeTab, setActiveTab] = useState<ProjectBrowserTab>('overview')
+  const isPhone = useMediaQuery(mobileHomeQuery)
   const selected = projects.find((project) => project.id === selectedId) ?? projects[0]
 
   return (
@@ -22,10 +24,11 @@ export default function ProjectsPage() {
             singleContentMount
             disableCloseControl
             expandedCloseWithRedButton
+            controlsDisabled={isPhone}
           >
             <div className="projects-workspace__layout">
-              <ProjectExplorer projects={projects} selectedId={selected.id} onSelect={setSelectedId} />
-              <ProjectBrowser project={selected} activeTab={activeTab} onTabChange={setActiveTab} />
+              <ProjectExplorer projects={projects} selectedId={selected.id} onSelect={setSelectedId} compact={isPhone} />
+              <ProjectBrowser project={selected} activeTab={activeTab} onTabChange={setActiveTab} compact={isPhone} />
             </div>
           </RetroWindow>
 

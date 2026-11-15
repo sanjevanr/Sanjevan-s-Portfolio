@@ -21,8 +21,13 @@ export function trackIdForPath(pathname: string): TrackId | null {
   return null
 }
 
-export function createInitialState(pathname: string): AudioControllerState {
-  const activeTrackId = trackIdForPath(pathname)
+/** Phones never get an audible track. Saved preferences are untouched. */
+export function permittedTrackId(routeTrackId: TrackId | null, isPhone: boolean): TrackId | null {
+  return isPhone ? null : routeTrackId
+}
+
+export function createInitialState(pathname: string, isPhone = false): AudioControllerState {
+  const activeTrackId = permittedTrackId(trackIdForPath(pathname), isPhone)
   return {
     activeTrackId,
     tracks: {

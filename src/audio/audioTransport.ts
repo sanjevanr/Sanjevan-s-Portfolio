@@ -26,6 +26,7 @@ export class AudioTransport {
   private operationId = 0
   private assignedSrc: string | null = null
   private playPending = false
+  private wantsPlay = false
   private destroyed = false
   private readonly media: MediaLike
   private readonly onReport: (report: TransportReport) => void
@@ -39,6 +40,10 @@ export class AudioTransport {
     this.listeners = [
       ['playing', () => {
         if (this.media.paused) return
+        if (!this.wantsPlay) {
+          this.media.pause()
+          return
+        }
         this.playPending = false
         this.report(this.operationId, 'playing')
       }],
@@ -67,6 +72,7 @@ export class AudioTransport {
 
   activate(src: string | null, shouldPlay: boolean, operationId: number) {
     this.operationId = operationId
+    this.wantsPlay = src !== null && shouldPlay
     if (src === null || !shouldPlay) {
       this.playPending = false
       if (!this.media.paused) this.media.pause()
@@ -84,11 +90,13 @@ export class AudioTransport {
 
   playFromGesture(operationId: number) {
     this.operationId = operationId
+    this.wantsPlay = true
     this.attemptPlay(operationId)
   }
 
   pause(operationId: number) {
     this.operationId = operationId
+    this.wantsPlay = false
     this.playPending = false
     this.media.pause()
     this.report(operationId, 'paused')
@@ -121,6 +129,7 @@ export class AudioTransport {
     }
     attempt.then(
       () => {
+        if (!this.wantsPlay && !this.media.paused) this.media.pause()
         if (operationId !== this.operationId) return
         this.playPending = false
         this.report(operationId, this.media.paused ? 'paused' : 'playing')

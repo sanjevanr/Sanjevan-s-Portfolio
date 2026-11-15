@@ -15,7 +15,7 @@ function formatTime(value: number) {
 }
 
 export default function SpotifyPlayer() {
-  const { audioRef, track, isPlaying, isLoading, duration, canSeek, analyser, playbackError, togglePlayback, seekTo } = useHomeAudio()
+  const { audioRef, track, isPlaying, isLoading, isAvailable, duration, canSeek, analyser, playbackError, togglePlayback, seekTo } = useHomeAudio()
   const visualizerRef = useRef<HTMLDivElement>(null)
   const analyserRef = useRef<AnalyserNode | null>(analyser)
   const animationFrameRef = useRef<number | null>(null)
@@ -177,10 +177,11 @@ export default function SpotifyPlayer() {
         <button
           className="spotify-player__play"
           type="button"
-          aria-label={isPlaying ? 'Pause playback' : 'Play playback'}
-          title={isPlaying ? 'Pause' : isLoading ? 'Loading' : 'Play'}
+          aria-label={!isAvailable ? 'Playback unavailable on this screen size' : isPlaying ? 'Pause playback' : 'Play playback'}
+          title={!isAvailable ? 'Unavailable on this screen size' : isPlaying ? 'Pause' : isLoading ? 'Loading' : 'Play'}
           aria-pressed={isPlaying}
           aria-busy={isLoading}
+          disabled={!isAvailable}
           onClick={togglePlayback}
         >
           <span aria-hidden="true">{isPlaying ? 'Ⅱ' : '▶'}</span>

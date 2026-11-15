@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import providerSource from '../components/HomeAudio.tsx?raw'
 import stateSource from './audioState.ts?raw'
 import transportSource from './audioTransport.ts?raw'
-import { activeWantsPlayback, audioReducer, createInitialState, type AudioAction, type AudioControllerState } from './audioState'
+import { activeWantsPlayback, audioReducer, createInitialState, permittedTrackId, type AudioAction, type AudioControllerState, type TrackId } from './audioState'
 
 function run(state: AudioControllerState, ...actions: AudioAction[]) {
   return actions.reduce(audioReducer, state)
@@ -52,6 +52,46 @@ describe('audioReducer', () => {
   it('native pause events do not change saved preferences', () => {
     const state = run(createInitialState('/'), { type: 'transportReported', operationId: 0, status: 'paused' })
     expect(state.tracks.home.desiredPlayback).toBe('playing')
+  })
+
+  it('phones suppress both tracks without touching preferences', () => {
+    expect(permittedTrackId('home', true)).toBeNull()
+    expect(permittedTrackId('projects', true)).toBeNull()
+    expect(permittedTrackId('home', false)).toBe('home')
+    expect(permittedTrackId('projects', false)).toBe('projects')
+
+    for (const path of ['/', '/projects']) {
+      const state = createInitialState(path, true)
+      expect(state.activeTrackId).toBeNull()
+      expect(state.actualPlayback).toBe('paused')
+      expect(activeWantsPlayback(state)).toBe(false)
+      expect(state.tracks.home.desiredPlayback).toBe('playing')
+      expect(state.tracks.projects.desiredPlayback).toBe('playing')
+    }
+  })
+
+  it('route changes on a phone never activate a track', () => {
+    const phoneRoute = (trackId: TrackId): AudioAction => ({ type: 'routeChanged', trackId: permittedTrackId(trackId, true) })
+    const state = run(createInitialState('/', true), phoneRoute('projects'), phoneRoute('home'), phoneRoute('projects'))
+    expect(state.activeTrackId).toBeNull()
+    expect(activeWantsPlayback(state)).toBe(false)
+    expect(run(state, play)).toBe(state)
+  })
+
+  it('a phone round trip restores each track from its own preference', () => {
+    const toPhone: AudioAction = { type: 'routeChanged', trackId: null }
+    let state = run(createInitialState('/'), pause, goProjects)
+    expect(state.actualPlayback).toBe('loading')
+    state = run(state, toPhone)
+    expect(state.actualPlayback).toBe('paused')
+    expect(state.tracks.projects.desiredPlayback).toBe('playing')
+    expect(state.tracks.home.desiredPlayback).toBe('paused')
+
+    state = run(state, goProjects)
+    expect(state.actualPlayback).toBe('loading')
+    state = run(state, toPhone, goHome)
+    expect(state.actualPlayback).toBe('paused')
+    expect(activeWantsPlayback(state)).toBe(false)
   })
 
   it('E: a fresh document load always starts with both tracks playing', () => {
