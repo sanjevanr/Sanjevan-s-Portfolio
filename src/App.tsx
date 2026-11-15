@@ -14,6 +14,7 @@ import ThemeToggle from './components/ThemeToggle'
 import ProjectsPage from './components/projects/ProjectsPage'
 import ResumeShortcut from './components/projects/ResumeShortcut'
 import YouTubePreview from './components/YouTubePreview'
+import ContactPage from './components/ContactPage'
 
 type Theme = 'light' | 'dark'
 type ThemePreference = 'system' | 'light' | 'dark'
@@ -440,7 +441,7 @@ function App() {
 
   return (
     <HomeAudioProvider>
-    <div className={`site${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}`} ref={siteRef}>
+    <div className={`site${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/contact' ? ' site--contact' : ''}`} ref={siteRef}>
       <MorphingBackground />
       <SiteHeader theme={theme} onToggleTheme={toggleTheme} />
       <div className="site-content">
@@ -452,7 +453,7 @@ function App() {
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/photography" element={<ComingSoonPage />} />
         <Route path="/about" element={<ComingSoonPage />} />
-        <Route path="/contact" element={<ComingSoonPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<ComingSoonPage />} />
       </Routes>
       </div>

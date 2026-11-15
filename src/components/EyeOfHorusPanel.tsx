@@ -8,7 +8,7 @@ function EyeOfHorusContent() {
           <h2>the eye of horus.</h2>
         </header>
         <div className="intro-panel__content">
-          <p>To me, this logo represents seeing through a believing and trusting yourself as a visionary.</p>
+          <p>To me, this logo represents believing and trusting yourself as a visionary.</p>
           <p>It reflects how I approach creativity, photography, and software development, by trusting my perspective, and creating with intention every step of the way.</p>
         </div>
       </div>

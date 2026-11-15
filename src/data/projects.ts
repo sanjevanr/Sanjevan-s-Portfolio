@@ -8,21 +8,55 @@ export interface PortfolioProject {
   highlights: string[]
   skillsLearned: string[]
   achievements?: string[]
-  githubUrl: string
+  githubUrl?: string
   links?: {
     label: string
     /** Button label on phones. */
     shortLabel: string
     url: string
   }[]
-  media: {
-    type: 'image' | 'video' | 'gif'
-    src: string
-    alt?: string
-  }[]
+  media: ProjectMedia[]
 }
 
+export type ProjectMedia =
+  | {
+    type: 'image' | 'video'
+    src: string
+    alt?: string
+    title?: string
+    description?: string
+  }
+  | {
+    type: 'youtube'
+    videoId: string
+    title: string
+    description?: string
+  }
+
 export const projectMediaPlaceholder = 'No project media is available yet.'
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Readable title from a file path, e.g. `/roam.io/social-feed_roam.io.png` with `strip: 'roam.io'` gives "Social Feed". */
+export function titleFromFilename(src: string, strip?: string) {
+  let name = src.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
+  if (strip) name = name.replace(new RegExp(escapeRegExp(strip), 'gi'), ' ')
+  return name
+    .replace(/[-_](?:[a-f0-9]{8,}|[a-f0-9]{4}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})$/i, '')
+    .replace(/[-_.\s]+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase()) || 'Project media'
+}
+
+const videoExtensions = /\.(?:mp4|webm)$/i
+
+/** Media served from `public/<dir>/`. Add a file there, then list it here. */
+function publicMedia(projectTitle: string, dir: string, files: string[]): ProjectMedia[] {
+  return files.map((file) => {
+    const title = titleFromFilename(file, dir)
+    return { type: videoExtensions.test(file) ? 'video' : 'image', src: `/${dir}/${file}`, title, alt: `${projectTitle} ${title.toLowerCase()}` }
+  })
+}
 
 export const projects: PortfolioProject[] = [
   {
@@ -45,7 +79,13 @@ export const projects: PortfolioProject[] = [
       'Cross-platform mobile development',
     ],
     githubUrl: 'https://github.com/Monash-FIT3170/2026W2-Roam.io',
-    media: [],
+    links: [{ label: 'VIEW LANDING PAGE', shortLabel: 'WEBSITE', url: 'https://roamio-landing-page-gamma.vercel.app/' }],
+    media: publicMedia('Roam.io', 'roam.io', [
+      'social-feed_roam.io.png',
+      'milestones_roam.io.png',
+      'roam.io_team_photo.png',
+      'hazard_video.mp4',
+    ]),
   },
   {
     id: 'muas-website',
@@ -117,6 +157,28 @@ export const projects: PortfolioProject[] = [
     ],
     githubUrl: 'https://github.com/Amar723/UniHack-Team-YVL',
     links: [{ label: 'VIEW ON DEVPOST', shortLabel: 'DEVPOST', url: 'https://devpost.com/software/spotto' }],
+    media: [{ type: 'youtube', videoId: 'WQhQ-47rHPU', title: 'Spotto Demo' }],
+  },
+  {
+    id: 'unilinq',
+    title: 'UniLinq',
+    shortTitle: 'UniLinq',
+    technologies: ['Next.js', 'React', 'TypeScript', 'Supabase', 'PostgreSQL / pgvector', 'Gemini API'],
+    summary: 'A collaborative platform connecting university students with small and medium-sized enterprises through structured real-world projects. UniLinq progressed from a proof of concept towards an MVP, helping businesses publish opportunities and students discover work aligned with their skills and interests.',
+    highlights: [
+      'AI-assisted project scoping uses a guided conversation and Gemini to draft structured plans, deliverables and milestones for businesses to review and edit.',
+      'Student skills and project requirements are represented as embeddings; PostgreSQL pgvector similarity search surfaces potentially relevant opportunities without claiming a guaranteed match.',
+      'Student onboarding supports profiles for skills and interests, with an architecture for resume parsing, AI-assisted profile generation and verification workflows.',
+      'Project discovery and messaging help students and SMEs communicate and coordinate after finding an opportunity.',
+      'Contributed to wireframes and user flows, MVP feature implementation and refinement, messaging, database reorganisation, testing, debugging and demonstration preparation.',
+    ],
+    skillsLearned: [
+      'Full-stack development with React, Next.js and TypeScript',
+      'Supabase, PostgreSQL, database design and access control',
+      'pgvector similarity search, Gemini integration and AI-assisted matching',
+      'Team collaboration and iterative MVP development',
+    ],
+    links: [{ label: 'VISIT UNILINQ', shortLabel: 'UNILINQ', url: 'https://unilinq.org' }],
     media: [],
   },
 ]

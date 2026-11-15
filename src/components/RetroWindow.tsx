@@ -77,7 +77,10 @@ export default function RetroWindow({
           ref={dialogRef}
           className={`retro-window__dialog ${className}`.trim()}
           aria-label={`Expanded ${accessibleLabel}`}
-          onClose={handleWindowDialogClose}
+          onClose={(event) => {
+            // React forwards close events from portalled child dialogs (the media viewer) up the tree.
+            if (event.target === event.currentTarget) handleWindowDialogClose()
+          }}
           onClick={handleDialogClick}
         >
           <header className="retro-window__titlebar retro-window__titlebar--dialog">
