@@ -23,8 +23,8 @@ describe('project media', () => {
 
   it('derives readable titles from filenames', () => {
     expect(titleFromFilename('/roam.io/social-feed_roam.io.png', 'roam.io')).toBe('Social Feed')
-    expect(titleFromFilename('/roam.io/roam.io_team_photo.png', 'roam.io')).toBe('Team Photo')
+    expect(titleFromFilename('/roam.io/roam.io_team_photo.png', 'roam.io')).toBe('Team Photo - r/Kuang')
     expect(titleFromFilename('/roam.io/milestones_roam.io.png', 'roam.io')).toBe('Milestones')
-    expect(titleFromFilename('/roam.io/hazard_video.mp4', 'roam.io')).toBe('Hazard Video')
+    expect(titleFromFilename('/roam.io/hazard_video.mp4', 'roam.io')).toBe('Hazard Reporting Demonstrations')
   })
 })

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
-import { projectMediaPlaceholder, titleFromFilename, type PortfolioProject, type ProjectMedia } from '../../data/projects'
+import { projectMediaCaption, projectMediaPlaceholder, type PortfolioProject, type ProjectMedia } from '../../data/projects'
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -69,7 +69,7 @@ function Overview({ project, compact }: { project: PortfolioProject; compact: bo
   )
 }
 
-const mediaLabel = (item: ProjectMedia) => item.title ?? (item.type === 'youtube' ? 'YouTube video' : titleFromFilename(item.src))
+const mediaLabel = projectMediaCaption
 const youTubeThumbnails = (videoId: string) => [
   `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
   `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
@@ -140,6 +140,7 @@ function MediaViewer({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const [playingKey, setPlayingKey] = useState<string | null>(null)
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
   const item = items[index]
   const label = mediaLabel(item)
 
@@ -187,12 +188,27 @@ function MediaViewer({
     >
       <div className="media-viewer__window">
         <header className="media-viewer__titlebar">
-          <span>{label}</span>
           <button className="media-viewer__close" type="button" onClick={onClose} aria-label="Close expanded media" title="Close">×</button>
         </header>
         <div className={`media-viewer__content${items.length === 1 ? ' media-viewer__content--solo' : ''}`}>
           {items.length > 1 && <button type="button" className="media-viewer__arrow" onClick={() => select(index - 1)} aria-label="Previous media">‹</button>}
-          <figure className="media-viewer__figure">
+          <figure
+            className="media-viewer__figure"
+            onPointerDown={(event) => {
+              const target = event.target
+              const isControl = target instanceof Element && Boolean(target.closest('button, video, iframe, input, select'))
+              if (event.pointerType === 'touch' && event.isPrimary && !isControl) touchStart.current = { x: event.clientX, y: event.clientY }
+            }}
+            onPointerUp={(event) => {
+              const start = touchStart.current
+              touchStart.current = null
+              if (event.pointerType !== 'touch' || !event.isPrimary || !start || items.length < 2) return
+              const dx = event.clientX - start.x
+              const dy = event.clientY - start.y
+              if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.25) select(index + (dx < 0 ? 1 : -1))
+            }}
+            onPointerCancel={() => { touchStart.current = null }}
+          >
             <div className={`media-viewer__media media-viewer__media--${item.type}`}>
               {item.type === 'image' && <img key={item.src} src={item.src} alt={item.alt ?? label} draggable={false} />}
               {item.type === 'video' && <video key={item.src} src={item.src} controls playsInline preload="metadata" aria-label={item.alt ?? label} />}
@@ -288,32 +304,34 @@ function Media({
             {current.type === 'image' && <img key={current.src} src={current.src} alt={current.alt ?? label} draggable={false} onClick={openViewer} />}
             {current.type === 'video' && <video key={current.src} ref={inlineVideoRef} src={current.src} controls playsInline preload="metadata" aria-label={current.alt ?? label} />}
             {current.type === 'youtube' && <YouTubeSlide key={current.videoId} item={current} playing={playingKey === current.videoId} onPlay={() => setPlayingKey(current.videoId)} />}
+            <span className="project-media__frame-caption">{label}</span>
             <ExpandButton buttonRef={expandButtonRef} onClick={openViewer} />
           </div>
         </div>
         <div className="project-media__meta">
-          <h3>{label}</h3>
           <div className="project-media__controls">
-            {media.length > 1 && <button type="button" className="project-media__arrow" onClick={() => select(index - 1)} aria-label="Previous media">‹</button>}
+            <button type="button" className="project-media__arrow" onClick={() => select(index - 1)} aria-label="Previous media" disabled={media.length < 2}>‹</button>
             <span aria-live="polite">{String(index + 1).padStart(2, '0')} / {String(media.length).padStart(2, '0')}</span>
-            {media.length > 1 && <button type="button" className="project-media__arrow" onClick={() => select(index + 1)} aria-label="Next media">›</button>}
+            <button type="button" className="project-media__arrow" onClick={() => select(index + 1)} aria-label="Next media" disabled={media.length < 2}>›</button>
           </div>
         </div>
-        {media.length > 1 && (
+        {media.length > 0 && (
           <div className="project-media__filmstrip" role="group" aria-label="Choose media">
-            {media.map((item, itemIndex) => (
-              <button
-                key={item.type === 'youtube' ? item.videoId : item.src}
-                ref={(node) => { thumbnailRefs.current[itemIndex] = node }}
-                type="button"
-                className="project-media__thumbnail"
-                aria-label={`Show ${mediaLabel(item)}`}
-                aria-pressed={itemIndex === index}
-                onClick={() => select(itemIndex)}
-              >
-                <MediaThumbnail item={item} />
-              </button>
-            ))}
+            <div className="project-media__filmstrip-inner">
+              {media.map((item, itemIndex) => (
+                <button
+                  key={item.type === 'youtube' ? item.videoId : item.src}
+                  ref={(node) => { thumbnailRefs.current[itemIndex] = node }}
+                  type="button"
+                  className="project-media__thumbnail"
+                  aria-label={`Show ${mediaLabel(item)}`}
+                  aria-pressed={itemIndex === index}
+                  onClick={() => select(itemIndex)}
+                >
+                  <MediaThumbnail item={item} />
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </section>

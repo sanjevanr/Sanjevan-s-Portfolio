@@ -1,3 +1,5 @@
+import mediaCaptionOverrides from './media-captions.json'
+
 export interface PortfolioProject {
   id: string
   title: string
@@ -39,13 +41,23 @@ const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\
 
 /** Readable title from a file path, e.g. `/roam.io/social-feed_roam.io.png` with `strip: 'roam.io'` gives "Social Feed". */
 export function titleFromFilename(src: string, strip?: string) {
-  let name = src.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
+  const filename = src.split('/').pop() ?? ''
+  let name = filename.replace(/\.[^.]+$/, '')
+  const customCaption = mediaCaptionOverrides[filename.toLowerCase() as keyof typeof mediaCaptionOverrides]
+  if (customCaption) return customCaption
   if (strip) name = name.replace(new RegExp(escapeRegExp(strip), 'gi'), ' ')
   return name
     .replace(/[-_](?:[a-f0-9]{8,}|[a-f0-9]{4}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})$/i, '')
     .replace(/[-_.\s]+/g, ' ')
     .trim()
     .replace(/\b\w/g, (letter) => letter.toUpperCase()) || 'Project media'
+}
+
+export function projectMediaCaption(item: ProjectMedia) {
+  if (item.type === 'youtube') {
+    return mediaCaptionOverrides[`youtube:${item.videoId}` as keyof typeof mediaCaptionOverrides] ?? item.title
+  }
+  return item.title ?? titleFromFilename(item.src)
 }
 
 const videoExtensions = /\.(?:mp4|webm)$/i
@@ -125,7 +137,6 @@ export const projects: PortfolioProject[] = [
       'Explored Burrows–Wheeler Transform-based approximate matching.',
       "Implemented Ukkonen's suffix tree construction.",
       'Applied rolling-hash-based pattern matching.',
-      'Developed supporting examples and basic tests.',
     ],
     skillsLearned: [
       'Advanced data structures',
