@@ -14,8 +14,8 @@ export default function ProjectExplorer({ projects, selectedId, onSelect }: Proj
     const index = projects.findIndex((project) => project.id === selectedId)
     if (index < 0) return
     let next = index
-    if (event.key === 'ArrowDown') next = Math.min(projects.length - 1, index + 1)
-    else if (event.key === 'ArrowUp') next = Math.max(0, index - 1)
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') next = Math.min(projects.length - 1, index + 1)
+    else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') next = Math.max(0, index - 1)
     else if (event.key === 'Home') next = 0
     else if (event.key === 'End') next = projects.length - 1
     else return

@@ -10,12 +10,13 @@ export default function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
 
   return (
     <div className="theme-toggle-container">
+      <span className="theme-toggle__purpose">THEME</span>
       <button
         className="theme-toggle"
         type="button"
         role="switch"
         aria-checked={isDark}
-        aria-label="Dark mode"
+        aria-label="Toggle dark mode"
         onClick={onToggle}
       >
         <span className="theme-toggle__label theme-toggle__label--light" aria-hidden="true">L</span>

@@ -16,23 +16,23 @@ import ResumeShortcut from './components/projects/ResumeShortcut'
 import YouTubePreview from './components/YouTubePreview'
 
 type Theme = 'light' | 'dark'
+type ThemePreference = 'system' | 'light' | 'dark'
 
-function readStoredTheme(): Theme | null {
+const themeStorageKey = 'sanjevan-theme'
+
+function readThemePreference(): ThemePreference {
   try {
-    const storedTheme = window.localStorage.getItem('sanjevan-theme')
-    return storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : null
+    const storedTheme = window.localStorage.getItem(themeStorageKey)
+    return storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : 'system'
   } catch {
-    return null
+    return 'system'
   }
 }
 
 function useTheme() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const storedTheme = readStoredTheme()
-    if (storedTheme) return storedTheme
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  })
-  const hasManualPreference = useRef(readStoredTheme() !== null)
+  const [preference, setPreference] = useState<ThemePreference>(readThemePreference)
+  const [systemIsDark, setSystemIsDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const theme: Theme = preference === 'system' ? (systemIsDark ? 'dark' : 'light') : preference
 
   useLayoutEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -40,25 +40,20 @@ function useTheme() {
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const updateFromSystem = (event: MediaQueryListEvent) => {
-      if (!hasManualPreference.current) setTheme(event.matches ? 'dark' : 'light')
-    }
+    const updateFromSystem = () => setSystemIsDark(mediaQuery.matches)
     mediaQuery.addEventListener('change', updateFromSystem)
     return () => mediaQuery.removeEventListener('change', updateFromSystem)
   }, [])
 
   const toggleTheme = useCallback(() => {
-    setTheme((currentTheme) => {
-      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark'
-      hasManualPreference.current = true
-      try {
-        window.localStorage.setItem('sanjevan-theme', nextTheme)
-      } catch {
-        // Continue with the in-memory selection when storage is unavailable.
-      }
-      return nextTheme
-    })
-  }, [])
+    const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark'
+    setPreference(nextTheme)
+    try {
+      window.localStorage.setItem(themeStorageKey, nextTheme)
+    } catch {
+      // Continue with the in-memory selection when storage is unavailable.
+    }
+  }, [theme])
 
   return { theme, toggleTheme }
 }
@@ -105,13 +100,15 @@ function Navigation() {
 function SiteHeader({ theme, onToggleTheme }: { theme: Theme; onToggleTheme: () => void }) {
   return (
     <header className="site-header">
-      <h1 className="wordmark">sanjevan rajasegar</h1>
-      <Navigation />
-      <div className="site-utilities" role="group" aria-label="Site utilities">
-        <EnterSiteButton />
-        <ResumeShortcut />
-        <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+      <div className="site-header__brand">
+        <h1 className="wordmark">sanjevan rajasegar</h1>
+        <div className="site-utilities" role="group" aria-label="Site utilities">
+          <EnterSiteButton />
+          <ResumeShortcut />
+          <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+        </div>
       </div>
+      <Navigation />
     </header>
   )
 }

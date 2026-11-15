@@ -13,28 +13,32 @@ export default function ProjectsPage() {
   return (
     <main className="page-shell page-shell--projects">
       <div className="projects-stage">
-        <RetroWindow
-          title="Projects.exe"
-          accessibleLabel="Projects application"
-          className="projects-workspace"
-          showTitle
-          singleContentMount
-        >
-          <div className="projects-workspace__layout">
-            <ProjectExplorer projects={projects} selectedId={selected.id} onSelect={setSelectedId} />
-            <ProjectBrowser project={selected} activeTab={activeTab} onTabChange={setActiveTab} />
-          </div>
-        </RetroWindow>
-
-        <div className="projects-dock">
+        <div className="projects-collage">
           <RetroWindow
-            title="Now playing"
-            accessibleLabel="Projects music player"
-            canMaximise={false}
-            className="retro-window--spotify retro-window--projects-player"
+            title="Projects.exe"
+            accessibleLabel="Projects application"
+            className="projects-workspace"
+            showTitle
+            singleContentMount
+            disableCloseControl
+            expandedCloseWithRedButton
           >
-            <SpotifyPlayer />
+            <div className="projects-workspace__layout">
+              <ProjectExplorer projects={projects} selectedId={selected.id} onSelect={setSelectedId} />
+              <ProjectBrowser project={selected} activeTab={activeTab} onTabChange={setActiveTab} />
+            </div>
           </RetroWindow>
+
+          <div className="projects-dock">
+            <RetroWindow
+              title="Now playing"
+              accessibleLabel="Projects music player"
+              canMaximise={false}
+              className="retro-window--spotify retro-window--projects-player"
+            >
+              <SpotifyPlayer />
+            </RetroWindow>
+          </div>
         </div>
       </div>
     </main>
