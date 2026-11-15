@@ -6,10 +6,9 @@ type PhotoFrameProps = {
   expanded?: boolean
   maximiseButtonRef?: Ref<HTMLButtonElement>
   onMaximise: () => void
-  onMinimise: () => void
 }
 
-function PhotoFrame({ expanded = false, maximiseButtonRef, onMaximise, onMinimise }: PhotoFrameProps) {
+function PhotoFrame({ expanded = false, maximiseButtonRef, onMaximise }: PhotoFrameProps) {
   return (
     <figure className={`photo-frame ${expanded ? 'photo-frame--expanded' : 'photo-frame--standalone'}`}>
       <div className="photo-frame__inner">
@@ -18,45 +17,18 @@ function PhotoFrame({ expanded = false, maximiseButtonRef, onMaximise, onMinimis
         <span className="photo-cross photo-cross--bottom" aria-hidden="true">+</span>
       </div>
       <div className="photo-frame__controls">
-        <WindowControls
-          title="Photo"
-          canMaximise
-          canMinimise
-          expanded={expanded}
-          maximiseRef={maximiseButtonRef}
-          onMaximise={onMaximise}
-          onMinimise={onMinimise}
-        />
+        <WindowControls title="Photo" expanded={expanded} maximiseRef={maximiseButtonRef} onMaximise={onMaximise} />
       </div>
     </figure>
   )
 }
 
 export default function PhotoPanel() {
-  const {
-    isMinimised,
-    dialogRef,
-    maximiseButtonRef,
-    restoreButtonRef,
-    openDialog,
-    closeDialog,
-    minimise,
-    restore,
-    handleDialogClose,
-    handleDialogClick,
-  } = useWindowController()
+  const { dialogRef, maximiseButtonRef, openDialog, closeDialog, handleDialogClose, handleDialogClick } = useWindowController()
 
   return (
     <>
-      {isMinimised ? (
-        <button ref={restoreButtonRef} className="retro-window__restore photo-panel-restore" type="button" aria-label="Restore photo panel" onClick={restore}>
-          <span className="retro-window__restore-dot" aria-hidden="true" />
-          Restore photo
-        </button>
-      ) : (
-        <PhotoFrame maximiseButtonRef={maximiseButtonRef} onMaximise={openDialog} onMinimise={minimise} />
-      )}
-
+      <PhotoFrame maximiseButtonRef={maximiseButtonRef} onMaximise={openDialog} />
       <dialog
         ref={dialogRef}
         className="photo-viewer"
@@ -64,7 +36,7 @@ export default function PhotoPanel() {
         onClose={handleDialogClose}
         onClick={handleDialogClick}
       >
-        <PhotoFrame expanded onMaximise={closeDialog} onMinimise={closeDialog} />
+        <PhotoFrame expanded onMaximise={closeDialog} />
       </dialog>
     </>
   )

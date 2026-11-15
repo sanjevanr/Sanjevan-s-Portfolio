@@ -1,14 +1,8 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useRef, type MouseEvent } from 'react'
 
 export default function useWindowController() {
-  const [isMinimised, setIsMinimised] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const maximiseButtonRef = useRef<HTMLButtonElement>(null)
-  const restoreButtonRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (isMinimised) restoreButtonRef.current?.focus()
-  }, [isMinimised])
 
   const openDialog = () => {
     const dialog = dialogRef.current
@@ -16,11 +10,6 @@ export default function useWindowController() {
   }
 
   const closeDialog = () => dialogRef.current?.close()
-  const minimise = () => setIsMinimised(true)
-  const restore = () => {
-    setIsMinimised(false)
-    window.requestAnimationFrame(() => maximiseButtonRef.current?.focus())
-  }
 
   const handleDialogClose = () => {
     if (maximiseButtonRef.current?.isConnected) maximiseButtonRef.current.focus()
@@ -37,14 +26,10 @@ export default function useWindowController() {
   }
 
   return {
-    isMinimised,
     dialogRef,
     maximiseButtonRef,
-    restoreButtonRef,
     openDialog,
     closeDialog,
-    minimise,
-    restore,
     handleDialogClose,
     handleDialogClick,
   }

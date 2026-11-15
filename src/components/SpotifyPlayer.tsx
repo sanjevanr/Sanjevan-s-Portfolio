@@ -15,7 +15,7 @@ function formatTime(value: number) {
 }
 
 export default function SpotifyPlayer() {
-  const { audioRef, isPlaying, duration, canSeek, analyser, playbackError, togglePlayback, seekTo } = useHomeAudio()
+  const { audioRef, track, isPlaying, isLoading, duration, canSeek, analyser, playbackError, togglePlayback, seekTo } = useHomeAudio()
   const visualizerRef = useRef<HTMLDivElement>(null)
   const analyserRef = useRef<AnalyserNode | null>(analyser)
   const animationFrameRef = useRef<number | null>(null)
@@ -102,7 +102,7 @@ export default function SpotifyPlayer() {
       audio.removeEventListener('seeked', syncTime)
       audio.removeEventListener('ended', syncTime)
     }
-  }, [audioRef])
+  }, [audioRef, track.id])
 
   useEffect(() => {
     const updateVisibility = () => setIsDocumentVisible(!document.hidden)
@@ -144,9 +144,9 @@ export default function SpotifyPlayer() {
   const sliderValue = isScrubbing ? scrubTime : currentTime
 
   return (
-    <section className={`spotify-player${isPlaying ? ' spotify-player--playing' : ' spotify-player--paused'}${analyser ? ' spotify-player--analyser' : ''}${isDocumentVisible ? '' : ' spotify-player--hidden'}`} aria-label="Now playing Highs 2 Lows by Nujabes">
+    <section className={`spotify-player${isPlaying ? ' spotify-player--playing' : ' spotify-player--paused'}${analyser ? ' spotify-player--analyser' : ''}${isDocumentVisible ? '' : ' spotify-player--hidden'}`} aria-label={`Now playing ${track.title} by ${track.artist}`}>
       <div className="spotify-player__art" aria-hidden="true">
-        <img src="/nujabes-album-cover.jpg" alt="" />
+        <img src={track.artwork} alt="" />
       </div>
 
       <div className="spotify-player__display">
@@ -167,8 +167,8 @@ export default function SpotifyPlayer() {
           ))}
         </div>
         <div className="spotify-player__track">
-          <h2>Highs 2 Lows</h2>
-          <p>Nujabes</p>
+          <h2>{track.title}</h2>
+          <p>{track.artist}</p>
         </div>
       </div>
 
@@ -178,9 +178,10 @@ export default function SpotifyPlayer() {
           className="spotify-player__play"
           type="button"
           aria-label={isPlaying ? 'Pause playback' : 'Play playback'}
-          title={isPlaying ? 'Pause' : 'Play'}
+          title={isPlaying ? 'Pause' : isLoading ? 'Loading' : 'Play'}
           aria-pressed={isPlaying}
-          onClick={() => { void togglePlayback() }}
+          aria-busy={isLoading}
+          onClick={togglePlayback}
         >
           <span aria-hidden="true">{isPlaying ? 'Ⅱ' : '▶'}</span>
         </button>

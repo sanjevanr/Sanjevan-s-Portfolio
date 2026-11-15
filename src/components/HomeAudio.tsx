@@ -1,17 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { useLocation } from 'react-router-dom'
-import audioSource from '../assets/Nujabes - Highs 2 Lows (feat.Cise Starr from CYNE) [Official Audio].mp3'
+import { activeWantsPlayback, audioReducer, createInitialState, type ActualPlayback, type AudioAction, type AudioControllerState } from '../audio/audioState'
+import { AudioTransport, type TransportReport } from '../audio/audioTransport'
+import { homeTrack, trackIdForPath, tracksById, type SiteTrack } from '../data/tracks'
 
 export const mobileHomeQuery = '(max-width: 599px), (max-width: 760px) and (max-height: 999px)'
 
 type HomeAudioContextValue = {
   audioRef: RefObject<HTMLAudioElement | null>
+  track: SiteTrack
+  actualPlayback: ActualPlayback
   isPlaying: boolean
+  isLoading: boolean
+  isBlocked: boolean
   duration: number
   canSeek: boolean
   analyser: AnalyserNode | null
   playbackError: boolean
-  togglePlayback: () => Promise<void>
+  togglePlayback: () => void
   seekTo: (time: number) => void
 }
 
@@ -25,19 +31,9 @@ function readAudioState(context: AudioContext) {
   return context.state
 }
 
-function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(query)
-    const update = () => setMatches(mediaQuery.matches)
-    update()
-    mediaQuery.addEventListener('change', update)
-    return () => mediaQuery.removeEventListener('change', update)
-  }, [query])
-
-  return matches
-}
+const devLog = import.meta.env.DEV
+  ? (message: string, details?: unknown) => console.debug(message, { route: window.location.pathname, ...(details && typeof details === 'object' && !(details instanceof Error) ? details : { details }) })
+  : undefined
 
 let releaseTimer: number | null = null
 
@@ -46,21 +42,23 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
-  const userPausedRef = useRef(false)
-  const blockedRef = useRef(false)
-  const playRequestRef = useRef(0)
-  const generationRef = useRef(0)
-  const engagedRef = useRef(false)
+  const transportRef = useRef<AudioTransport | null>(null)
   const { pathname } = useLocation()
-  const isMobile = useMediaQuery(mobileHomeQuery)
-  const engaged = pathname === '/' && !isMobile
-  const [isPlaying, setIsPlaying] = useState(false)
+  const routeTrackId = trackIdForPath(pathname)
+  const [state, setState] = useState<AudioControllerState>(() => createInitialState(pathname))
+  const stateRef = useRef(state)
   const [duration, setDuration] = useState(0)
   const [canSeek, setCanSeek] = useState(false)
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
-  const [playbackError, setPlaybackError] = useState(false)
 
-  engagedRef.current = engaged
+  const apply = useCallback((action: AudioAction) => {
+    const next = audioReducer(stateRef.current, action)
+    if (next !== stateRef.current) {
+      stateRef.current = next
+      setState(next)
+    }
+    return next
+  }, [])
 
   const prepareAnalyser = useCallback(async (audio: HTMLAudioElement, fromGesture: boolean) => {
     if (analyserRef.current || typeof window.AudioContext === 'undefined') return
@@ -100,91 +98,42 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const attemptAutoplay = useCallback(() => {
-    const audio = audioRef.current
-    if (!audio || !engagedRef.current || userPausedRef.current || blockedRef.current) return
-    if (audio.ended || !audio.paused) return
-    if (audio.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) return
-    const generation = generationRef.current
-    const requestId = ++playRequestRef.current
-    void audio.play().catch((error: unknown) => {
-      if (generation !== generationRef.current || requestId !== playRequestRef.current) return
-      const name = error instanceof DOMException ? error.name : 'PlaybackError'
-      if (name === 'AbortError') return
-      if (name === 'NotAllowedError') {
-        blockedRef.current = true
-        if (import.meta.env.DEV) console.debug('Music autoplay was blocked by browser policy.', error)
-        return
-      }
-      if (import.meta.env.DEV) console.error('Music autoplay failed for a reason other than browser policy.', error)
-      setPlaybackError(true)
-    })
-  }, [])
-
   useEffect(() => {
     if (releaseTimer !== null) {
       window.clearTimeout(releaseTimer)
       releaseTimer = null
     }
-    const generation = ++generationRef.current
     const audio = audioRef.current
     if (!audio) return
 
-    const syncPlaying = () => setIsPlaying(!audio.paused && !audio.ended)
+    const onReport = (report: TransportReport) => {
+      apply({ type: 'transportReported', operationId: report.operationId, status: report.status })
+    }
+    const transport = new AudioTransport(audio, onReport, devLog)
+    transportRef.current = transport
+
     const syncMetadata = () => {
       const nextDuration = validDuration(audio.duration)
       setDuration(nextDuration)
       setCanSeek(nextDuration > 0 && audio.seekable.length > 0)
     }
-    const onPlay = () => {
-      setIsPlaying(true)
-      setPlaybackError(false)
-      void prepareAnalyser(audio, false)
-    }
-    const onPause = () => setIsPlaying(false)
-    const onEnded = () => setIsPlaying(false)
-    const onReady = () => {
-      syncMetadata()
-      attemptAutoplay()
-    }
-    const onError = () => {
-      const mediaError = audio.error
-      if (import.meta.env.DEV) {
-        console.error('Music file failed to load.', {
-          code: mediaError?.code,
-          message: mediaError?.message,
-          networkState: audio.networkState,
-          readyState: audio.readyState,
-        })
-      }
-      setPlaybackError(true)
-    }
-
+    const onPlay = () => { void prepareAnalyser(audio, false) }
     audio.addEventListener('play', onPlay)
-    audio.addEventListener('pause', onPause)
-    audio.addEventListener('ended', onEnded)
     audio.addEventListener('loadedmetadata', syncMetadata)
     audio.addEventListener('durationchange', syncMetadata)
     audio.addEventListener('progress', syncMetadata)
-    audio.addEventListener('canplay', onReady)
-    audio.addEventListener('canplaythrough', onReady)
-    audio.addEventListener('error', onError)
-    syncPlaying()
+    audio.addEventListener('emptied', syncMetadata)
     syncMetadata()
-    attemptAutoplay()
 
     return () => {
+      transport.destroy()
+      if (transportRef.current === transport) transportRef.current = null
       audio.removeEventListener('play', onPlay)
-      audio.removeEventListener('pause', onPause)
-      audio.removeEventListener('ended', onEnded)
       audio.removeEventListener('loadedmetadata', syncMetadata)
       audio.removeEventListener('durationchange', syncMetadata)
       audio.removeEventListener('progress', syncMetadata)
-      audio.removeEventListener('canplay', onReady)
-      audio.removeEventListener('canplaythrough', onReady)
-      audio.removeEventListener('error', onError)
+      audio.removeEventListener('emptied', syncMetadata)
       releaseTimer = window.setTimeout(() => {
-        if (generation !== generationRef.current) return
         releaseTimer = null
         audio.pause()
         sourceNodeRef.current?.disconnect()
@@ -196,46 +145,27 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
         audioContextRef.current = null
       }, 0)
     }
-  }, [attemptAutoplay, prepareAnalyser])
+  }, [apply, prepareAnalyser])
 
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    if (!engaged) {
-      if (!audio.paused) audio.pause()
-      return
-    }
-    attemptAutoplay()
-  }, [attemptAutoplay, engaged])
+    const transport = transportRef.current
+    if (!transport) return
+    const next = apply({ type: 'routeChanged', trackId: routeTrackId })
+    const trackId = next.activeTrackId
+    transport.activate(trackId ? tracksById[trackId].src : null, activeWantsPlayback(next), next.operationId)
+  }, [apply, routeTrackId])
 
-  const togglePlayback = useCallback(async () => {
+  const togglePlayback = useCallback(() => {
+    const transport = transportRef.current
     const audio = audioRef.current
-    if (!audio) return
-    if (!audio.paused) {
-      userPausedRef.current = true
-      audio.pause()
+    if (!transport || !audio || !stateRef.current.activeTrackId) return
+    if (stateRef.current.actualPlayback === 'playing') {
+      transport.pause(apply({ type: 'userPause' }).operationId)
       return
     }
-
-    userPausedRef.current = false
-    blockedRef.current = false
-    const generation = generationRef.current
-    const requestId = ++playRequestRef.current
-    const playAttempt = audio.play().then(
-      () => ({ ok: true as const }),
-      (error: unknown) => ({ ok: false as const, error }),
-    )
-    await prepareAnalyser(audio, true)
-    const result = await playAttempt
-    if (generation !== generationRef.current || requestId !== playRequestRef.current || result.ok) return
-    const name = result.error instanceof DOMException ? result.error.name : 'PlaybackError'
-    if (name === 'AbortError') return
-    if (name === 'NotAllowedError') {
-      blockedRef.current = true
-      return
-    }
-    setPlaybackError(true)
-  }, [prepareAnalyser])
+    transport.playFromGesture(apply({ type: 'userPlay' }).operationId)
+    void prepareAnalyser(audio, true)
+  }, [apply, prepareAnalyser])
 
   const seekTo = useCallback((time: number) => {
     const audio = audioRef.current
@@ -244,21 +174,29 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     audio.currentTime = Math.min(availableDuration, Math.max(0, time))
   }, [])
 
+  const track = state.activeTrackId ? tracksById[state.activeTrackId] : homeTrack
+  const { actualPlayback } = state
+  const wantsPlayback = activeWantsPlayback(state)
+
   const value = useMemo(() => ({
     audioRef,
-    isPlaying,
+    track,
+    actualPlayback,
+    isPlaying: actualPlayback === 'playing',
+    isLoading: actualPlayback === 'loading' && wantsPlayback,
+    isBlocked: actualPlayback === 'blocked' && wantsPlayback,
     duration,
     canSeek,
     analyser,
-    playbackError,
+    playbackError: actualPlayback === 'error',
     togglePlayback,
     seekTo,
-  }), [analyser, canSeek, duration, isPlaying, playbackError, seekTo, togglePlayback])
+  }), [actualPlayback, analyser, canSeek, duration, seekTo, togglePlayback, track, wantsPlayback])
 
   return (
     <HomeAudioContext.Provider value={value}>
       {children}
-      <audio ref={audioRef} className="home-audio" src={audioSource} preload="auto" autoPlay={engaged} />
+      <audio ref={audioRef} className="home-audio" preload="auto" />
     </HomeAudioContext.Provider>
   )
 }

@@ -1,6 +1,4 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
-import useWindowController from '../hooks/useWindowController'
-import WindowControls from './WindowControls'
 
 const platforms = [
   {
@@ -9,7 +7,7 @@ const platforms = [
     handle: 'sanjevanr_media',
     url: 'https://www.instagram.com/sanjevanr_media/',
     descriptor: 'Photo and media',
-    cta: 'Visit profile',
+    cta: 'Visit Profile',
     rows: [
       ['Focus', 'Photography + Videography'],
       ['Format', 'Posts and Reels'],
@@ -21,7 +19,7 @@ const platforms = [
     handle: 'Sanjevan Rajasegar',
     url: 'https://www.linkedin.com/in/sanjevan-rajasegar-a3b178272/',
     descriptor: 'SWE + CS Student at Monash University',
-    cta: 'Visit profile',
+    cta: 'Visit Profile',
     rows: [
       ['Place', 'Melbourne'],
       ['Study', 'SWE, Adv CS'],
@@ -33,7 +31,7 @@ const platforms = [
     handle: 'sanjevanr',
     url: 'https://github.com/sanjevanr',
     descriptor: 'Profile',
-    cta: 'View repo profile',
+    cta: 'Visit Profile',
     rows: [
       ['Profile', 'Technical Work'],
       ['Code', 'Technical Projects'],
@@ -113,7 +111,6 @@ function PlatformMark({ id }: { id: PlatformId }) {
 export default function SocialBrowser() {
   const baseId = useId()
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
-  const { isMinimised, minimise, restore, restoreButtonRef } = useWindowController()
   const [activeId, setActiveId] = useState<PlatformId>('instagram')
   const [hasSwitched, setHasSwitched] = useState(false)
   const active = platforms.find((platform) => platform.id === activeId) ?? platforms[0]
@@ -145,32 +142,10 @@ export default function SocialBrowser() {
     }
   }
 
-  if (isMinimised) {
-    return (
-      <button
-        ref={restoreButtonRef}
-        className="retro-window__restore retro-window--social-browser"
-        type="button"
-        aria-label="Restore internet panel"
-        onClick={restore}
-      >
-        <span className="retro-window__restore-dot" aria-hidden="true" />
-        Restore panel
-      </button>
-    )
-  }
-
   return (
     <section className="retro-window retro-window--social-browser" aria-label="Social browser">
       <header className="retro-window__titlebar social-browser__chrome">
-        <WindowControls
-          title="Internet"
-          canMaximise={false}
-          canMinimise
-          maximiseIndicatorOnly
-          onMaximise={() => {}}
-          onMinimise={minimise}
-        />
+        <span className="window-control window-control--close" aria-hidden="true" />
         <div className="social-browser__tabs" role="tablist" aria-label="Sanjevan on the web" onKeyDown={onTabsKeyDown}>
           {platforms.map((platform, index) => {
             const selected = platform.id === active.id
