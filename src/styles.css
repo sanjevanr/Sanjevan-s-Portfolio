@@ -36,6 +36,35 @@
   --tablet-landscape-social-top: 168px;
 
   /* ============================================================
+     CONTACT PAGE — DESKTOP POSITION CONTROLS
+     Positive LEFT moves right.
+     Negative LEFT moves left.
+     Positive TOP moves down.
+     Negative TOP moves up.
+     ============================================================ */
+
+  --contact-window-left: 0px;
+  --contact-window-top: 0px;
+  --contact-window-width: 620px;
+
+  --contact-icons-left: 0px;
+  --contact-icons-top: 0px;
+  --contact-icons-gap: 32px;
+  --contact-icons-size: 56px;
+
+  /* ABOUT PAGE — DESKTOP MUSIC PLAYER */
+  --about-player-left: 70%;
+  --about-player-top: 70%;
+  --about-player-width: 320px;
+  --about-player-height: 360px;
+
+  /* ABOUT PAGE — TABLET MUSIC PLAYER */
+  --about-tablet-player-left: 650px;
+  --about-tablet-player-top: 570px;
+  --about-tablet-player-width: 320px;
+  --about-tablet-player-height: 360px;
+
+  /* ============================================================
      DESKTOP PROJECTS
      Viewports outside the tablet query and the phone query.
      Screen pixels. The window is not canvas-scaled.
@@ -240,16 +269,8 @@ a:focus-visible {
   pointer-events: auto;
 }
 
-.site:not(.site--home) .site-header .wordmark {
+.site:not(.site--home):not(.site--projects):not(.site--contact):not(.site--about) .site-header .wordmark {
   display: none;
-}
-
-.site.site--projects .site-header .wordmark {
-  display: block;
-}
-
-.site.site--contact .site-header .wordmark {
-  display: block;
 }
 
 @media (min-width: 600px) and (max-width: 760px) and (min-height: 1000px) {
@@ -3603,23 +3624,44 @@ body {
    ============================================================ */
 
 .page-shell--contact {
-  --contact-vertical-reserve: calc(
-    var(--header-top-offset) +
-    var(--site-header-height, 100px) +
-    16px +
-    max(env(safe-area-inset-top), env(safe-area-inset-bottom))
+  top: calc(var(--header-top-offset) + env(safe-area-inset-top) + var(--site-header-height, 100px));
+  right: 0;
+  bottom: calc(
+    28px + env(safe-area-inset-bottom) +
+    var(--site-footer-height, 40px) + 14px +
+    var(--site-nav-height, 40px) + 12px
   );
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--contact-vertical-reserve) 20px;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 16px 20px;
+  overflow-x: hidden;
+  overflow-y: auto;
   pointer-events: none;
 }
 
-.contact-window {
-  width: min(620px, 100%);
+.contact-collage {
+  display: flex;
+  width: min(var(--contact-window-width), 100%);
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  margin-block: auto;
+  pointer-events: none;
+}
+
+.site--contact .contact-collage > section.contact-window {
+  position: relative;
+  z-index: 1;
+  width: min(var(--contact-window-width), 100%);
   height: auto;
-  max-height: 100%;
+  max-height: none;
+  transform: translate(var(--contact-window-left), var(--contact-window-top));
   pointer-events: auto;
 }
 
@@ -3628,6 +3670,105 @@ body {
   overflow: auto;
   padding: 0;
 }
+
+.contact-shortcuts {
+  display: grid;
+  width: max-content;
+  max-width: 100%;
+  grid-template-columns: repeat(4, minmax(72px, 1fr));
+  align-items: start;
+  justify-items: center;
+  gap: var(--contact-icons-gap);
+  margin-top: 24px;
+  transform: translate(var(--contact-icons-left), var(--contact-icons-top));
+  pointer-events: auto;
+}
+
+.contact-shortcut {
+  display: flex;
+  width: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 2px 3px 4px;
+  border-radius: 4px;
+  color: #fff;
+  font: 500 11px/1.2 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 0 1px 3px rgb(0 0 0 / .88), 0 0 5px rgb(0 0 0 / .65);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.contact-app-icon {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  width: var(--contact-icons-size);
+  height: var(--contact-icons-size);
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / .62);
+  border-radius: 23%;
+  color: #fff;
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / .72),
+    inset 0 -2px 3px rgb(0 0 0 / .24),
+    0 3px 7px rgb(0 0 0 / .34),
+    0 0 1px rgb(255 255 255 / .7);
+}
+
+.contact-app-icon::before {
+  position: absolute;
+  z-index: 0;
+  inset: 1px 1px 48%;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(255 255 255 / .58), rgb(255 255 255 / .04));
+  content: "";
+  pointer-events: none;
+}
+
+.contact-app-icon--instagram {
+  background: linear-gradient(138deg, #ffd76a 0%, #ff7848 28%, #e1306c 57%, #a02ab8 82%, #6548d8 100%);
+}
+
+.contact-app-icon--linkedin {
+  background: linear-gradient(145deg, #63bbff 0%, #0a78ca 48%, #064b8e 100%);
+}
+
+.contact-app-icon--github {
+  background: linear-gradient(145deg, #55565a 0%, #28292d 52%, #101114 100%);
+}
+
+.contact-app-icon--youtube {
+  background: linear-gradient(145deg, #ff6969 0%, #ed1b24 48%, #a90916 100%);
+}
+
+.contact-app-icon__glyph {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 66%;
+  height: 66%;
+  flex: 0 0 auto;
+  overflow: visible;
+  color: #fff;
+}
+
+.contact-shortcut:hover { transform: translateY(-2px); }
+
+.contact-shortcut:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+  background: rgb(255 255 255 / .15);
+  box-shadow: 0 0 0 1px rgb(19 58 105 / .65);
+}
+
+.contact-shortcut:active { transform: translateY(0); }
 
 .contact-panel {
   --contact-space: 8px;
@@ -3761,6 +3902,199 @@ body {
 .contact-form__submit:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 .contact-form__submit:disabled { cursor: wait; opacity: .7; }
 
+@media (min-width: 761px) and (max-width: 1199px) {
+  :root {
+    --contact-window-width: min(620px, calc(100vw - 80px));
+    --contact-icons-gap: clamp(18px, 3vw, 30px);
+    --contact-icons-size: 52px;
+  }
+}
+
+@media (max-width: 760px), (max-width: 900px) and (max-height: 500px) {
+  html:has(.site--contact),
+  body:has(.site--contact),
+  #root:has(.site--contact) {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body:has(.site--contact) {
+    min-height: 100dvh;
+  }
+
+  .site.site--contact {
+    display: flex;
+    height: auto;
+    min-height: 100dvh;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .site--contact .site-content {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .site--contact .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    display: grid;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "brand utilities" "nav nav";
+    align-items: center;
+    justify-content: stretch;
+    gap: 9px 8px;
+    padding: calc(10px + env(safe-area-inset-top)) 12px 8px;
+  }
+
+  .site--contact .site-header .wordmark {
+    display: block;
+    grid-area: brand;
+    width: auto;
+    min-width: max-content;
+    margin: 0;
+    padding-inline-end: .1em;
+    font-size: clamp(16px, 5.6vw, 22px);
+    line-height: 1.3;
+    letter-spacing: -.075em;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .site--contact .site-header .site-nav {
+    position: static;
+    inset: auto;
+    grid-area: nav;
+    display: flex;
+    width: 100%;
+    max-width: none;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 12px;
+    margin: 0;
+    transform: none;
+  }
+
+  .site--contact .site-header .site-nav a {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 2px 0;
+    font-size: clamp(11px, 3vw, 14px);
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .site--contact .site-header .site-utilities {
+    position: static;
+    inset: auto;
+    grid-area: utilities;
+    justify-self: end;
+    align-self: center;
+    gap: 6px;
+    margin: 0;
+    transform: none;
+  }
+
+  .page-shell--contact {
+    --contact-window-left: 0px;
+    --contact-window-top: 0px;
+    --contact-window-width: min(620px, calc(100vw - 24px));
+    --contact-icons-left: 0px;
+    --contact-icons-top: 0px;
+    --contact-icons-gap: clamp(4px, 2vw, 12px);
+    --contact-icons-size: clamp(42px, 11vw, 48px);
+    position: relative;
+    inset: auto;
+    flex: 1 0 auto;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: calc(var(--site-header-height, 120px) + 12px) 12px 20px;
+    overflow: visible;
+  }
+
+  .contact-collage {
+    width: min(620px, calc(100vw - 24px));
+    max-width: 100%;
+    flex: 0 0 auto;
+    margin: 0 auto;
+  }
+
+  .site--contact .contact-collage > section.contact-window {
+    width: 100%;
+    transform: none;
+  }
+
+  .contact-shortcuts {
+    width: 100%;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--contact-icons-gap);
+    transform: none;
+  }
+
+  .contact-shortcut {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 2px 0 4px;
+    gap: 4px;
+    font-size: clamp(9px, 2.6vw, 11px);
+    overflow-wrap: anywhere;
+  }
+
+  .contact-panel {
+    --contact-space: 7px;
+    padding: 18px 15px 20px;
+  }
+
+  .contact-form__field input,
+  .contact-form__field textarea {
+    font-size: 16px;
+  }
+
+  .contact-form__field textarea {
+    min-height: 104px;
+  }
+
+  .site--contact .site-footer {
+    position: relative;
+    inset: auto;
+    width: min(calc(100% - 24px), 420px);
+    max-width: none;
+    margin: 0 auto;
+    padding: 12px 0 calc(16px + env(safe-area-inset-bottom));
+    transform: none;
+  }
+}
+
+@media (max-width: 360px) {
+  .page-shell--contact {
+    --contact-icons-size: clamp(38px, 11.2vw, 40px);
+    --contact-icons-gap: 4px;
+    padding-inline: 10px;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 500px) {
+  .site--contact .page-shell--contact {
+    --contact-icons-size: 40px;
+    --contact-icons-gap: 8px;
+    padding-top: calc(var(--site-header-height, 76px) + 8px);
+  }
+}
+
 /* `.contact-window { height: auto }` would stretch a modal dialog between
    its fixed insets; fit-content restores the dialog's own sizing. */
 .retro-window__dialog.contact-window {
@@ -3789,6 +4123,121 @@ body {
 
 .retro-window__dialog.contact-window .contact-panel {
   padding: clamp(20px, 3.4vw, 32px) clamp(18px, 4vw, 40px) clamp(22px, 3.6vw, 34px);
+}
+
+/* ============================================================
+   ABOUT PAGE — FLOATING MUSIC PLAYER
+   ============================================================ */
+
+.page-shell--about {
+  display: block;
+  padding: 0;
+  pointer-events: none;
+}
+
+.about-stage {
+  position: absolute;
+  inset:
+    calc(var(--header-top-offset) + env(safe-area-inset-top) + var(--site-header-height, 100px) + 14px)
+    24px
+    calc(28px + env(safe-area-inset-bottom) + var(--site-footer-height, 40px) + 14px + var(--site-nav-height, 40px) + 12px);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.about-collage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1100px;
+  height: 840px;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.about-collage > section.about-content-window,
+.about-collage > section.about-player-window {
+  position: absolute;
+  z-index: 4;
+  pointer-events: auto;
+}
+
+.about-collage > section.about-content-window {
+  top: 43%;
+  left: 25%;
+  width: 520px;
+  max-height: 560px;
+  transform: translate(-50%, -50%);
+}
+
+.about-collage > section.about-player-window {
+  top: var(--about-player-top);
+  left: var(--about-player-left);
+  width: var(--about-player-width);
+  height: var(--about-player-height);
+  max-height: none;
+  transform: translate(-50%, -50%);
+}
+
+.about-player-window .retro-window__body {
+  min-height: 0;
+}
+
+.about-player-window .spotify-player {
+  min-height: 0;
+}
+
+.about-mobile-content {
+  display: none;
+}
+
+@media (min-width: 761px) and (max-width: 1199px) and (min-height: 740px),
+       (min-width: 600px) and (max-width: 760px) and (min-height: 1000px),
+       (min-width: 1200px) and (max-width: 1230px) and (min-height: 800px),
+       (min-width: 1231px) and (max-width: 1440px) and (min-height: 901px) {
+  .about-collage > section.about-content-window {
+    top: 42%;
+    left: 22%;
+    width: 460px;
+  }
+
+  .about-collage--tablet > section.about-player-window {
+    top: var(--about-tablet-player-top);
+    left: var(--about-tablet-player-left);
+    width: var(--about-tablet-player-width);
+    height: var(--about-tablet-player-height);
+  }
+}
+
+@media (max-width: 760px) and (max-height: 999px), (max-width: 599px) {
+  .page-shell--about-phone {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: calc(var(--site-header-height, 120px) + 20px) 16px 24px;
+    overflow: visible;
+  }
+
+  .about-stage { display: none; }
+
+  .about-mobile-content {
+    display: block;
+    width: min(100%, 560px);
+    margin: 0 auto;
+    pointer-events: auto;
+  }
+
+  .about-mobile-content > section.about-content-window {
+    width: 100%;
+    max-height: none;
+  }
+
+  .about-mobile-content .retro-window__body {
+    overflow: visible;
+  }
 }
 
 /* ============================================================
@@ -4815,16 +5264,7 @@ body {
 .media-viewer__figure figcaption span { color: #cfe6ff; }
 
 @media (max-width: 600px) {
-  .page-shell--contact {
-    --contact-vertical-reserve: calc(var(--site-header-height, 100px) + 12px + max(env(safe-area-inset-top), env(safe-area-inset-bottom)));
-    align-items: center;
-    padding: var(--contact-vertical-reserve) 12px;
-  }
-
-  .contact-window { max-height: 100%; }
-  .contact-panel { --contact-space: 7px; padding: 18px 15px 20px; }
   .retro-window__dialog.contact-window { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
-  .retro-window__dialog.contact-window .contact-panel { padding: 18px 15px 20px; }
   .contact-form__actions { align-items: flex-end; }
   .contact-form__status { font-size: 9px; }
   .contact-form__submit { padding-inline: 10px; font-size: 10px; }

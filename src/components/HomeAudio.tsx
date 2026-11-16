@@ -7,6 +7,7 @@ import { homeTrack, trackIdForPath, tracksById, type SiteTrack } from '../data/t
 /* Must match the CSS phone query:
    @media (max-width: 760px) and (max-height: 999px), (max-width: 599px) */
 export const mobileHomeQuery = '(max-width: 599px), (max-width: 760px) and (max-height: 999px)'
+export const tabletHomeQuery = '(min-width: 761px) and (max-width: 1199px) and (min-height: 740px), (min-width: 600px) and (max-width: 760px) and (min-height: 1000px), (min-width: 1200px) and (max-width: 1230px) and (min-height: 800px), (min-width: 1231px) and (max-width: 1440px) and (min-height: 901px)'
 
 type HomeAudioContextValue = {
   audioRef: RefObject<HTMLAudioElement | null>

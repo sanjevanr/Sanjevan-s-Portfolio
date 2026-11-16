@@ -10,6 +10,7 @@ function run(state: AudioControllerState, ...actions: AudioAction[]) {
 
 const goHome: AudioAction = { type: 'routeChanged', trackId: 'home' }
 const goProjects: AudioAction = { type: 'routeChanged', trackId: 'projects' }
+const goAbout: AudioAction = { type: 'routeChanged', trackId: 'about' }
 const play: AudioAction = { type: 'userPlay' }
 const pause: AudioAction = { type: 'userPause' }
 
@@ -18,6 +19,22 @@ describe('audioReducer', () => {
     const state = run(createInitialState('/projects'), pause)
     expect(state.tracks.projects.desiredPlayback).toBe('paused')
     expect(state.tracks.home.desiredPlayback).toBe('playing')
+  })
+
+  it('keeps the About track preference independent from Home and Projects', () => {
+    let state = run(createInitialState('/about'), pause, goHome)
+    expect(state.tracks.about.desiredPlayback).toBe('paused')
+    expect(state.tracks.home.desiredPlayback).toBe('playing')
+    state = run(state, pause, goProjects, pause, goAbout)
+    expect(state.activeTrackId).toBe('about')
+    expect(state.tracks.about.desiredPlayback).toBe('paused')
+    expect(state.tracks.projects.desiredPlayback).toBe('paused')
+    state = run(state, play)
+    expect(state.tracks.about.desiredPlayback).toBe('playing')
+    expect(state.tracks.home.desiredPlayback).toBe('paused')
+    state = run(state, pause, goProjects)
+    expect(state.tracks.about.desiredPlayback).toBe('paused')
+    expect(state.tracks.projects.desiredPlayback).toBe('paused')
   })
 
   it('B: both tracks stay paused across navigation', () => {
@@ -57,16 +74,18 @@ describe('audioReducer', () => {
   it('phones suppress both tracks without touching preferences', () => {
     expect(permittedTrackId('home', true)).toBeNull()
     expect(permittedTrackId('projects', true)).toBeNull()
+    expect(permittedTrackId('about', true)).toBeNull()
     expect(permittedTrackId('home', false)).toBe('home')
     expect(permittedTrackId('projects', false)).toBe('projects')
 
-    for (const path of ['/', '/projects']) {
+    for (const path of ['/', '/projects', '/about']) {
       const state = createInitialState(path, true)
       expect(state.activeTrackId).toBeNull()
       expect(state.actualPlayback).toBe('paused')
       expect(activeWantsPlayback(state)).toBe(false)
       expect(state.tracks.home.desiredPlayback).toBe('playing')
       expect(state.tracks.projects.desiredPlayback).toBe('playing')
+      expect(state.tracks.about.desiredPlayback).toBe('playing')
     }
   })
 

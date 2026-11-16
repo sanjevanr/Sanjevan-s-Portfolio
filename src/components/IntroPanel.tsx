@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { Link } from 'react-router-dom'
 
-export function IntroPanel() {
+export function IntroPanel({ showMoreLink = true }: { showMoreLink?: boolean }) {
   const headingId = useId()
   return (
     <section className="intro-panel" aria-labelledby={headingId}>
@@ -17,7 +17,7 @@ export function IntroPanel() {
         <p>I enjoy building thoughtful software solutions, learning new technologies, and working on projects that bring together strong technical foundations with meaningful user experiences.</p>
       </div>
 
-      <Link to="/about" className="intro-panel__link">more about me ↗</Link>
+      {showMoreLink && <Link to="/about" className="intro-panel__link">more about me ↗</Link>}
     </section>
   )
 }

@@ -6,7 +6,7 @@ import HorizontalWorkspace from './components/HorizontalWorkspace'
 import { IntroPanel } from './components/IntroPanel'
 import PhotoPanel from './components/PhotoPanel'
 import RetroWindow from './components/RetroWindow'
-import { HomeAudioProvider, mobileHomeQuery, useMediaQuery } from './components/HomeAudio'
+import { HomeAudioProvider, mobileHomeQuery, tabletHomeQuery, useMediaQuery } from './components/HomeAudio'
 import EnterSiteButton from './components/EnterSiteButton'
 import SocialBrowser from './components/SocialBrowser'
 import SpotifyPlayer from './components/SpotifyPlayer'
@@ -15,6 +15,7 @@ import ProjectsPage from './components/projects/ProjectsPage'
 import ResumeShortcut from './components/projects/ResumeShortcut'
 import YouTubePreview from './components/YouTubePreview'
 import ContactPage from './components/ContactPage'
+import AboutPage from './components/AboutPage'
 
 type Theme = 'light' | 'dark'
 type ThemePreference = 'system' | 'light' | 'dark'
@@ -100,7 +101,7 @@ function SiteHeader({ theme, onToggleTheme }: { theme: Theme; onToggleTheme: () 
   )
 }
 
-function CollagePanels() {
+function CollagePanels({ showMusic }: { showMusic: boolean }) {
   return (
     <>
       <EyeOfHorusPanel />
@@ -111,9 +112,11 @@ function CollagePanels() {
       <RetroWindow title="Video" accessibleLabel="YouTube video preview" canMaximise={false} className="retro-window--youtube">
         <YouTubePreview />
       </RetroWindow>
-      <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} className="retro-window--spotify">
-        <SpotifyPlayer />
-      </RetroWindow>
+      {showMusic && (
+        <RetroWindow title="Now playing" accessibleLabel="Spotify player" canMaximise={false} className="retro-window--spotify">
+          <SpotifyPlayer />
+        </RetroWindow>
+      )}
       <SocialBrowser />
     </>
   )
@@ -121,7 +124,8 @@ function CollagePanels() {
 
 function HomePage() {
   const isMobile = useMediaQuery(mobileHomeQuery)
-  const isTablet = useMediaQuery('(min-width: 761px) and (max-width: 1199px) and (min-height: 740px), (min-width: 600px) and (max-width: 760px) and (min-height: 1000px), (min-width: 1200px) and (max-width: 1230px) and (min-height: 800px), (min-width: 1231px) and (max-width: 1440px) and (min-height: 901px)')
+  const isTablet = useMediaQuery(tabletHomeQuery)
+  const { pathname } = useLocation()
   const pageRef = useRef<HTMLElement>(null)
   const desktopCanvasRef = useRef<HTMLDivElement>(null)
   const desktopCollageRef = useRef<HTMLDivElement>(null)
@@ -355,7 +359,7 @@ function HomePage() {
                   className="moodboard-collage moodboard-collage--tablet"
                   style={{ left: tabletLayout.offsetX, top: tabletLayout.offsetY }}
                 >
-                  <CollagePanels />
+                  <CollagePanels showMusic={pathname === '/'} />
                 </div>
               </div>
             </div>
@@ -374,7 +378,7 @@ function HomePage() {
                   className="moodboard-collage moodboard-collage--desktop"
                   style={{ left: desktopLayout.offsetX, top: desktopLayout.offsetY }}
                 >
-                  <CollagePanels />
+                  <CollagePanels showMusic={pathname === '/'} />
                 </div>
               </div>
             </div>
@@ -441,7 +445,7 @@ function App() {
 
   return (
     <HomeAudioProvider>
-    <div className={`site${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/contact' ? ' site--contact' : ''}`} ref={siteRef}>
+    <div className={`site${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/contact' ? ' site--contact' : ''}${pathname === '/about' ? ' site--about' : ''}`} ref={siteRef}>
       <MorphingBackground />
       <SiteHeader theme={theme} onToggleTheme={toggleTheme} />
       <div className="site-content">
@@ -452,7 +456,7 @@ function App() {
         <Route path="/" element={null} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/photography" element={<ComingSoonPage />} />
-        <Route path="/about" element={<ComingSoonPage />} />
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<ComingSoonPage />} />
       </Routes>

@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react'
 
-const platforms = [
+export const socialPlatforms = [
   {
     id: 'instagram',
     label: 'Instagram',
@@ -51,9 +51,9 @@ const platforms = [
   },
 ] as const
 
-type PlatformId = (typeof platforms)[number]['id']
+export type SocialPlatformId = (typeof socialPlatforms)[number]['id']
 
-function PlatformMark({ id }: { id: PlatformId }) {
+export function PlatformMark({ id }: { id: SocialPlatformId }) {
   if (id === 'instagram') {
     return (
       <svg className="social-browser__mark" viewBox="0 0 24 24" aria-hidden="true">
@@ -111,34 +111,34 @@ function PlatformMark({ id }: { id: PlatformId }) {
 export default function SocialBrowser() {
   const baseId = useId()
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
-  const [activeId, setActiveId] = useState<PlatformId>('instagram')
+  const [activeId, setActiveId] = useState<SocialPlatformId>('instagram')
   const [hasSwitched, setHasSwitched] = useState(false)
-  const active = platforms.find((platform) => platform.id === activeId) ?? platforms[0]
+  const active = socialPlatforms.find((platform) => platform.id === activeId) ?? socialPlatforms[0]
 
-  const selectPlatform = (id: PlatformId, focusIndex?: number) => {
+  const selectPlatform = (id: SocialPlatformId, focusIndex?: number) => {
     setHasSwitched(true)
     setActiveId(id)
     if (focusIndex !== undefined) tabRefs.current[focusIndex]?.focus()
   }
 
   const onTabsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const index = platforms.findIndex((platform) => platform.id === activeId)
+    const index = socialPlatforms.findIndex((platform) => platform.id === activeId)
     if (index < 0) return
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
       const direction = event.key === 'ArrowRight' ? 1 : -1
-      const nextIndex = (index + direction + platforms.length) % platforms.length
-      selectPlatform(platforms[nextIndex].id, nextIndex)
+      const nextIndex = (index + direction + socialPlatforms.length) % socialPlatforms.length
+      selectPlatform(socialPlatforms[nextIndex].id, nextIndex)
       return
     }
     if (event.key === 'Home') {
       event.preventDefault()
-      selectPlatform(platforms[0].id, 0)
+      selectPlatform(socialPlatforms[0].id, 0)
       return
     }
     if (event.key === 'End') {
       event.preventDefault()
-      selectPlatform(platforms[platforms.length - 1].id, platforms.length - 1)
+      selectPlatform(socialPlatforms[socialPlatforms.length - 1].id, socialPlatforms.length - 1)
     }
   }
 
@@ -147,7 +147,7 @@ export default function SocialBrowser() {
       <header className="retro-window__titlebar social-browser__chrome">
         <span className="window-control window-control--close" aria-hidden="true" />
         <div className="social-browser__tabs" role="tablist" aria-label="Sanjevan on the web" onKeyDown={onTabsKeyDown}>
-          {platforms.map((platform, index) => {
+          {socialPlatforms.map((platform, index) => {
             const selected = platform.id === active.id
             return (
               <button

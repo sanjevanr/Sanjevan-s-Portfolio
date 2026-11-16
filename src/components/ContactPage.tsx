@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react'
 import RetroWindow from './RetroWindow'
+import ContactSocialShortcuts from './ContactSocialShortcuts'
 
 type SubmitState = 'idle' | 'sending' | 'success' | 'error'
 type ContactFields = { name: string; email: string; message: string }
@@ -54,47 +55,50 @@ export default function ContactPage() {
 
   return (
     <main className="page-shell page-shell--contact">
-      <RetroWindow
-        title="Contact"
-        accessibleLabel="Contact form"
-        className="contact-window"
-        singleContentMount
-        disableCloseControl
-        expandedCloseWithRedButton
-      >
-        <div className="contact-panel">
-          <h2 className="contact-panel__title">Contact</h2>
+      <div className="contact-collage">
+        <RetroWindow
+          title="Contact"
+          accessibleLabel="Contact form"
+          className="contact-window"
+          singleContentMount
+          disableCloseControl
+          expandedCloseWithRedButton
+        >
+          <div className="contact-panel">
+            <h2 className="contact-panel__title">Contact</h2>
 
-          <form className="contact-form" onSubmit={handleSubmit}>
-            <div className="contact-form__field">
-              <label htmlFor="contact-name">NAME</label>
-              <input id="contact-name" name="name" type="text" autoComplete="name" maxLength={maxNameLength} required disabled={state === 'sending'} value={fields.name} onChange={updateField} />
-            </div>
-            <div className="contact-form__field">
-              <label htmlFor="contact-email">EMAIL</label>
-              <input id="contact-email" name="email" type="email" autoComplete="email" maxLength={254} required disabled={state === 'sending'} value={fields.email} onChange={updateField} />
-            </div>
-            <div className="contact-form__field">
-              <label htmlFor="contact-message">MESSAGE</label>
-              <textarea id="contact-message" name="message" rows={5} maxLength={maxMessageLength} required disabled={state === 'sending'} value={fields.message} onChange={updateField} />
-            </div>
-            <div className="contact-form__trap" aria-hidden="true">
-              <label htmlFor="contact-website">Leave this field empty</label>
-              <input id="contact-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
-            </div>
-            <div className="contact-form__actions">
-              <p className="contact-form__status" aria-live="polite" role={state === 'error' ? 'alert' : 'status'}>
-                {state === 'success' && 'MESSAGE SENT SUCCESSFULLY ✓'}
-                {state === 'error' && errorMessage}
-                {state === 'sending' && 'SENDING MESSAGE…'}
-              </p>
-              <button className="contact-form__submit" type="submit" disabled={state === 'sending'}>
-                {state === 'sending' ? 'SENDING…' : 'SEND MESSAGE'} <span aria-hidden="true">↗</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </RetroWindow>
+            <form className="contact-form" onSubmit={handleSubmit}>
+              <div className="contact-form__field">
+                <label htmlFor="contact-name">NAME</label>
+                <input id="contact-name" name="name" type="text" autoComplete="name" maxLength={maxNameLength} required disabled={state === 'sending'} value={fields.name} onChange={updateField} />
+              </div>
+              <div className="contact-form__field">
+                <label htmlFor="contact-email">EMAIL</label>
+                <input id="contact-email" name="email" type="email" autoComplete="email" maxLength={254} required disabled={state === 'sending'} value={fields.email} onChange={updateField} />
+              </div>
+              <div className="contact-form__field">
+                <label htmlFor="contact-message">MESSAGE</label>
+                <textarea id="contact-message" name="message" rows={5} maxLength={maxMessageLength} required disabled={state === 'sending'} value={fields.message} onChange={updateField} />
+              </div>
+              <div className="contact-form__trap" aria-hidden="true">
+                <label htmlFor="contact-website">Leave this field empty</label>
+                <input id="contact-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+              </div>
+              <div className="contact-form__actions">
+                <p className="contact-form__status" aria-live="polite" role={state === 'error' ? 'alert' : 'status'}>
+                  {state === 'success' && 'MESSAGE SENT SUCCESSFULLY ✓'}
+                  {state === 'error' && errorMessage}
+                  {state === 'sending' && 'SENDING MESSAGE…'}
+                </p>
+                <button className="contact-form__submit" type="submit" disabled={state === 'sending'}>
+                  {state === 'sending' ? 'SENDING…' : 'SEND MESSAGE'} <span aria-hidden="true">↗</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </RetroWindow>
+        <ContactSocialShortcuts />
+      </div>
     </main>
   )
 }

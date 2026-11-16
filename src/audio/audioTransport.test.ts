@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { audioReducer, activeWantsPlayback, createInitialState, type AudioAction, type AudioControllerState } from './audioState'
+import { audioReducer, activeWantsPlayback, createInitialState, type AudioAction, type AudioControllerState, type TrackId } from './audioState'
 import { AudioTransport, type MediaLike } from './audioTransport'
 
-const sources = { home: '/nujabes.mp3', projects: '/roses.mp3' } as const
+const sources = { home: '/nujabes.mp3', projects: '/roses.mp3', about: '/bodies.mp3' } as const
 
 type Deferred = { src: string; resolve: () => void; reject: (error: unknown) => void }
 
@@ -86,7 +86,7 @@ function harness(pathname: string) {
   const activate = (next: AudioControllerState) => {
     transport.activate(next.activeTrackId ? sources[next.activeTrackId] : null, activeWantsPlayback(next), next.operationId)
   }
-  const navigate = (trackId: 'home' | 'projects' | null) => activate(apply({ type: 'routeChanged', trackId }))
+  const navigate = (trackId: TrackId | null) => activate(apply({ type: 'routeChanged', trackId }))
   const toggle = () => {
     if (state.actualPlayback === 'playing') transport.pause(apply({ type: 'userPause' }).operationId)
     else transport.playFromGesture(apply({ type: 'userPlay' }).operationId)
@@ -98,6 +98,25 @@ function harness(pathname: string) {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('AudioTransport with the reducer', () => {
+  it('plays the About track through the shared transport and restores its own preference', async () => {
+    const h = harness('/about')
+    await flush()
+    expect(h.media.src).toBe(sources.about)
+    expect(h.media.paused).toBe(false)
+
+    h.toggle()
+    h.navigate('home')
+    await flush()
+    expect(h.media.src).toBe(sources.home)
+    expect(h.media.paused).toBe(false)
+
+    h.navigate('about')
+    await flush()
+    expect(h.media.src).toBe(sources.about)
+    expect(h.media.paused).toBe(true)
+    expect(h.state.tracks.about.desiredPlayback).toBe('paused')
+  })
+
   it('B: paused tracks are activated without calling play', async () => {
     const h = harness('/')
     await flush()
