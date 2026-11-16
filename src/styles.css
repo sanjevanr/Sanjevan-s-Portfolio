@@ -4422,6 +4422,13 @@ body {
 .finder-icon--computer i { width: 18px; height: 11px; border: 1px solid #7aa3c4; background: linear-gradient(#b8e2ff, #6197c3); }
 .finder-icon--photo,.finder-icon--video { width: 24px; height: 24px; border: 1px solid #78828a; border-radius: 5px; background: linear-gradient(#fff, #cbd2d7); color: #527ca0; font-size: 17px; box-shadow: inset 0 1px #fff; }
 .finder-icon--video { color: #b32626; font-size: 12px; }
+.finder-icon--video-file { position: relative; width: 45px; height: 54px; border: 1px solid #8a969d; border-radius: 3px; background: linear-gradient(135deg, transparent 0 9px, #fbfcfc 9px), linear-gradient(#fff, #dfe4e7); box-shadow: inset 1px 1px #fff, 1px 2px 3px rgb(0 0 0 / .18); }
+.finder-icon--video-file::before { position: absolute; top: -1px; right: -1px; width: 11px; height: 11px; border-bottom: 1px solid #8a969d; border-left: 1px solid #8a969d; background: linear-gradient(135deg, #d9dfe2 0 49%, #fff 51%); content: ""; }
+.finder-icon--video-file i { position: absolute; right: 5px; bottom: 6px; left: 5px; height: 25px; border: 1px solid #a7b0b5; border-radius: 3px; background: linear-gradient(#e9f4fa, #c9dae4); }
+.finder-icon--video-file i::before,.finder-icon--video-file i::after { position: absolute; top: 3px; bottom: 3px; width: 3px; background: repeating-linear-gradient(180deg, #748994 0 3px, transparent 3px 6px); content: ""; }
+.finder-icon--video-file i::before { left: 2px; }
+.finder-icon--video-file i::after { right: 2px; }
+.finder-icon--video-file b { position: relative; z-index: 1; margin-top: 10px; color: #be1e2d; font: 12px/1 Arial, sans-serif; text-shadow: 0 1px #fff; }
 
 .finder-empty { display: flex; min-height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #80878b; text-align: center; }
 .finder-empty .finder-icon { width: 42px; height: 42px; font-size: 25px; opacity: .64; }
@@ -4432,6 +4439,19 @@ body {
 .finder-preview a:hover { background: linear-gradient(#fff, #c7def4); }
 .finder-link-icon { font-size: 18px; }
 .finder-link-icon--youtube { color: #cb2525; font-size: 12px; }
+.finder-preview--video { justify-content: center; gap: 12px; }
+.finder-video-title { max-width: 100%; margin: 0; color: #24292d; font-size: clamp(16px, 2vw, 22px); font-weight: 600; line-height: 1.25; text-align: center; overflow-wrap: anywhere; }
+.finder-preview a.finder-video-thumbnail { position: relative; display: block; width: min(100%, 820px); min-height: 0; aspect-ratio: 16 / 9; padding: 0; overflow: hidden; border: 1px solid #9da7ad; border-radius: 2px; background: linear-gradient(135deg, #e3e7e9, #f9fafb); color: inherit; box-shadow: inset 0 0 0 3px #f4f5f5, 0 3px 12px rgb(0 0 0 / .2); }
+.finder-video-thumbnail img { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; border: 0; box-shadow: none; }
+.finder-video-thumbnail:hover { border-color: #647d8c; box-shadow: inset 0 0 0 3px #f4f5f5, 0 5px 15px rgb(0 0 0 / .26); }
+.finder-video-play { position: absolute; top: 50%; left: 50%; display: grid; width: 68px; aspect-ratio: 68 / 48; color: #f00; filter: drop-shadow(0 2px 3px rgb(0 0 0 / .38)); transform: translate(-50%, -50%); transition: transform 150ms ease, filter 150ms ease; }
+.finder-video-play svg { display: block; width: 100%; height: 100%; }
+.finder-video-thumbnail:hover .finder-video-play { filter: drop-shadow(0 3px 5px rgb(0 0 0 / .45)); transform: translate(-50%, -50%) scale(1.08); }
+.finder-video-duration { position: absolute; right: 8px; bottom: 8px; padding: 2px 5px; border-radius: 2px; background: rgb(0 0 0 / .78); color: #fff; font: 11px/1.3 var(--mono); }
+.finder-video-fallback { display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #59646a; background: repeating-linear-gradient(135deg, #f3f5f6 0 10px, #e9edef 10px 20px); font-size: 13px; }
+.finder-video-fallback .finder-icon--video-file { transform: scale(1.15); }
+.finder-preview a.finder-video-watch { min-height: 36px; }
+.finder-video-watch > span:last-child { margin-left: 3px; }
 .finder-preview-placeholder { display: flex; min-width: 180px; min-height: 140px; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border: 1px dashed #aeb5ba; color: #7b848a; background: #f4f5f6; }
 .finder-status { display: flex; min-height: 23px; flex: 0 0 23px; align-items: center; justify-content: space-between; padding: 0 10px; border-top: 1px solid #b4b9bc; background: linear-gradient(#e2e4e5, #c8ccce); color: #5c6367; font-size: 10px; }
 

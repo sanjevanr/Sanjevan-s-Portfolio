@@ -29,11 +29,13 @@ function pathFor(place: Place): Place[] {
   return ['media', 'type', place]
 }
 
-function FinderIcon({ type }: { type: 'computer' | 'folder' | 'photo' | 'video' | 'drive' | 'youtube' }) {
+function FinderIcon({ type, file = false }: { type: 'computer' | 'folder' | 'photo' | 'video' | 'drive' | 'youtube'; file?: boolean }) {
   if (type === 'folder') return <span className="finder-icon finder-icon--folder" aria-hidden="true"><i /></span>
   if (type === 'computer') return <span className="finder-icon finder-icon--computer" aria-hidden="true"><i /></span>
   if (type === 'photo') return <span className="finder-icon finder-icon--photo" aria-hidden="true">▧</span>
-  if (type === 'video') return <span className="finder-icon finder-icon--video" aria-hidden="true">▶</span>
+  if (type === 'video') return file
+    ? <span className="finder-icon finder-icon--video-file" aria-hidden="true"><i /><b>▶</b></span>
+    : <span className="finder-icon finder-icon--video" aria-hidden="true">▶</span>
   if (type === 'drive') return <span className="finder-link-icon" aria-hidden="true">↗</span>
   return <span className="finder-link-icon finder-link-icon--youtube" aria-hidden="true">▶</span>
 }
@@ -75,7 +77,7 @@ function MediaFinder() {
     if (place === 'video') return videoUploads.map((item) => ({ kind: 'video', item }))
     return []
   }, [place])
-  const totalItems = entries.length
+  const totalItems = place.startsWith('portfolio:') || place.startsWith('video-item:') ? 1 : entries.length
   const goUp = () => {
     const parent = placeParent[place]
     if (parent) goTo(parent)
@@ -146,19 +148,22 @@ function MediaFinder() {
 
         <div ref={canvasRef} className="finder-canvas" tabIndex={0} aria-label={`${placeTitle(place)} contents`} onKeyDown={handleCanvasKeyDown}>
           {currentItem ? (
-            <div className="finder-preview">
-              {'preview' in currentItem ? (
-                <>
-                  {!missingPreview ? <img src={currentItem.preview} alt={`${currentItem.name} portfolio preview`} onError={() => setMissingPreview(true)} /> : <div className="finder-preview-placeholder"><FinderIcon type="photo" /><span>Preview unavailable</span></div>}
-                  <a href={currentItem.googleDriveUrl} target="_blank" rel="noopener noreferrer"><FinderIcon type="drive" />Open in Google Drive</a>
-                </>
-              ) : (
-                <>
-                  {!missingPreview ? <img src={currentItem.thumbnail} alt={`${currentItem.title} video thumbnail`} onError={() => setMissingPreview(true)} /> : <div className="finder-preview-placeholder"><FinderIcon type="video" /><span>Preview unavailable</span></div>}
-                  <a href={currentItem.youtubeUrl} target="_blank" rel="noopener noreferrer"><FinderIcon type="youtube" />Open on YouTube</a>
-                </>
-              )}
-            </div>
+            'preview' in currentItem ? (
+              <div className="finder-preview finder-preview--photo">
+                {!missingPreview ? <img src={currentItem.preview} alt={`${currentItem.name} portfolio preview`} onError={() => setMissingPreview(true)} /> : <div className="finder-preview-placeholder"><FinderIcon type="photo" /><span>Preview unavailable</span></div>}
+                <a href={currentItem.googleDriveUrl} target="_blank" rel="noopener noreferrer"><FinderIcon type="drive" />Open in Google Drive</a>
+              </div>
+            ) : (
+              <div className="finder-preview finder-preview--video">
+                <h2 className="finder-video-title">{currentItem.title}</h2>
+                <a className="finder-video-thumbnail" href={currentItem.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${currentItem.title} on YouTube (opens in a new tab)`}>
+                  {!missingPreview ? <img src={currentItem.thumbnail} alt={`${currentItem.title} YouTube thumbnail`} onError={() => setMissingPreview(true)} /> : <div className="finder-video-fallback"><FinderIcon type="video" file /><span>Video preview unavailable</span></div>}
+                  {!missingPreview && <span className="finder-video-play" aria-hidden="true"><svg viewBox="0 0 68 48" focusable="false"><path d="M66.52 7.1a8 8 0 0 0-5.64-5.66C55.9 0 34 0 34 0S12.1 0 7.12 1.44A8 8 0 0 0 1.48 7.1C0 12.1 0 24 0 24s0 11.9 1.48 16.9a8 8 0 0 0 5.64 5.66C12.1 48 34 48 34 48s21.9 0 26.88-1.44a8 8 0 0 0 5.64-5.66C68 35.9 68 24 68 24s0-11.9-1.48-16.9Z" fill="currentColor" /><path d="m27 34.5 18-10.5-18-10.5v21Z" fill="#fff" /></svg></span>}
+                  {currentItem.duration && <span className="finder-video-duration">{currentItem.duration}</span>}
+                </a>
+                <a className="finder-video-watch" href={currentItem.youtubeUrl} target="_blank" rel="noopener noreferrer"><FinderIcon type="youtube" />Watch on YouTube <span aria-hidden="true">↗</span></a>
+              </div>
+            )
           ) : entries.length ? (
             <div className="finder-items" role="listbox" aria-label="Files and folders">
               {entries.map((entry) => {
@@ -181,7 +186,7 @@ function MediaFinder() {
                       else setSelected(id)
                     }}
                   >
-                    <FinderIcon type={icon} />
+                    <FinderIcon type={icon} file={entry.kind === 'video'} />
                     <span className="finder-item-name">{name}</span>
                   </button>
                 )
