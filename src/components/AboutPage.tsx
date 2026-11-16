@@ -87,7 +87,10 @@ export default function AboutPage() {
 
       const boundsWidth = Math.max(1, maxX - minX)
       const boundsHeight = Math.max(1, maxY - minY)
-      const nextScale = Math.max(0.01, Math.min(1, (stageWidth - 24) / boundsWidth, (stageHeight - 24) / boundsHeight))
+      // Fit to the measured artwork itself, keeping only a small safety inset.
+      // This lets roomy tablet viewports use the space rather than shrinking to
+      // an arbitrary desktop-canvas cap.
+      const nextScale = Math.max(0.01, Math.min((stageWidth - 8) / boundsWidth, (stageHeight - 8) / boundsHeight))
       const nextOffset = {
         x: (stageWidth - boundsWidth * nextScale) / 2 - minX * nextScale,
         y: (stageHeight - boundsHeight * nextScale) / 2 - minY * nextScale,

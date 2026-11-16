@@ -446,7 +446,7 @@ function App() {
 
   return (
     <HomeAudioProvider>
-    <div className={`site${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/contact' ? ' site--contact' : ''}${pathname === '/about' ? ' site--about' : ''}`} ref={siteRef}>
+    <div className={`site${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/media' ? ' site--media' : ''}${pathname === '/contact' ? ' site--contact' : ''}${pathname === '/about' ? ' site--about' : ''}`} ref={siteRef}>
       <MorphingBackground />
       <SiteHeader theme={theme} onToggleTheme={toggleTheme} />
       <div className="site-content">
