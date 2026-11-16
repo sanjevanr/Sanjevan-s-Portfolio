@@ -1,6 +1,7 @@
 import homeAudio from '../assets/Nujabes - Highs 2 Lows (feat.Cise Starr from CYNE) [Official Audio].mp3'
 import rosesAudio from '../assets/Roses.mp3'
 import bodiesAudio from '../assets/Dominic Fike - Bodies (Official Audio).mp3'
+import ouroborusAudio from '../assets/Ouroborus.mp3'
 import { trackIdForPath, type TrackId } from '../audio/audioState'
 
 export type SiteTrack = {
@@ -35,10 +36,19 @@ export const aboutTrack: SiteTrack = {
   artwork: '/bodies-cover.webp',
 }
 
+export const mediaTrack: SiteTrack = {
+  id: 'ouroborus',
+  title: 'Ouroborus',
+  artist: 'Maiorca',
+  src: ouroborusAudio,
+  artwork: '/ouroborus-cover.webp',
+}
+
 export const tracksById: Record<TrackId, SiteTrack> = {
   home: homeTrack,
   projects: projectsTrack,
   about: aboutTrack,
+  media: mediaTrack,
 }
 
 export { trackIdForPath }

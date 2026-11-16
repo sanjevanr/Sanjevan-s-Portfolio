@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import providerSource from '../components/HomeAudio.tsx?raw'
 import stateSource from './audioState.ts?raw'
 import transportSource from './audioTransport.ts?raw'
-import { activeWantsPlayback, audioReducer, createInitialState, permittedTrackId, type AudioAction, type AudioControllerState, type TrackId } from './audioState'
+import { activeWantsPlayback, audioReducer, createInitialState, permittedTrackId, trackIdForPath, type AudioAction, type AudioControllerState, type TrackId } from './audioState'
 
 function run(state: AudioControllerState, ...actions: AudioAction[]) {
   return actions.reduce(audioReducer, state)
@@ -15,6 +15,12 @@ const play: AudioAction = { type: 'userPlay' }
 const pause: AudioAction = { type: 'userPause' }
 
 describe('audioReducer', () => {
+  it('selects the Media track on desktop and suppresses it on phones', () => {
+    expect(trackIdForPath('/media')).toBe('media')
+    expect(createInitialState('/media').activeTrackId).toBe('media')
+    expect(createInitialState('/media', true).activeTrackId).toBeNull()
+  })
+
   it('A: pausing projects leaves the home preference playing', () => {
     const state = run(createInitialState('/projects'), pause)
     expect(state.tracks.projects.desiredPlayback).toBe('paused')
@@ -75,10 +81,12 @@ describe('audioReducer', () => {
     expect(permittedTrackId('home', true)).toBeNull()
     expect(permittedTrackId('projects', true)).toBeNull()
     expect(permittedTrackId('about', true)).toBeNull()
+    expect(permittedTrackId('media', true)).toBeNull()
     expect(permittedTrackId('home', false)).toBe('home')
     expect(permittedTrackId('projects', false)).toBe('projects')
+    expect(permittedTrackId('media', false)).toBe('media')
 
-    for (const path of ['/', '/projects', '/about']) {
+    for (const path of ['/', '/projects', '/about', '/media']) {
       const state = createInitialState(path, true)
       expect(state.activeTrackId).toBeNull()
       expect(state.actualPlayback).toBe('paused')
@@ -86,6 +94,7 @@ describe('audioReducer', () => {
       expect(state.tracks.home.desiredPlayback).toBe('playing')
       expect(state.tracks.projects.desiredPlayback).toBe('playing')
       expect(state.tracks.about.desiredPlayback).toBe('playing')
+      expect(state.tracks.media.desiredPlayback).toBe('playing')
     }
   })
 
@@ -114,7 +123,7 @@ describe('audioReducer', () => {
   })
 
   it('E: a fresh document load always starts with both tracks playing', () => {
-    for (const path of ['/', '/projects', '/about']) {
+    for (const path of ['/', '/projects', '/about', '/media']) {
       const state = createInitialState(path)
       expect(state.tracks.home.desiredPlayback).toBe('playing')
       expect(state.tracks.projects.desiredPlayback).toBe('playing')

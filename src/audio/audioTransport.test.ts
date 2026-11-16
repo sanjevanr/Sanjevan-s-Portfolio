@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { audioReducer, activeWantsPlayback, createInitialState, type AudioAction, type AudioControllerState, type TrackId } from './audioState'
 import { AudioTransport, type MediaLike } from './audioTransport'
 
-const sources = { home: '/nujabes.mp3', projects: '/roses.mp3', about: '/bodies.mp3' } as const
+const sources = { home: '/nujabes.mp3', projects: '/roses.mp3', about: '/bodies.mp3', media: '/ouroborus.mp3' } as const
 
 type Deferred = { src: string; resolve: () => void; reject: (error: unknown) => void }
 
@@ -98,6 +98,18 @@ function harness(pathname: string) {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('AudioTransport with the reducer', () => {
+  it('activates Ouroborus on Media and replaces it when navigating away', async () => {
+    const h = harness('/media')
+    await flush()
+    expect(h.state.activeTrackId).toBe('media')
+    expect(h.media.src).toBe(sources.media)
+    expect(h.media.paused).toBe(false)
+
+    h.navigate('projects')
+    await flush()
+    expect(h.media.src).toBe(sources.projects)
+  })
+
   it('plays the About track through the shared transport and restores its own preference', async () => {
     const h = harness('/about')
     await flush()

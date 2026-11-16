@@ -12,6 +12,7 @@ const imageJobs = [
   { source: 'media-source/about-scrapbook/evening-with-friends.jpg', output: 'public/about-scrapbook/evening-with-friends.webp', width: 640, quality: 88 },
   { source: 'media-source/about-scrapbook/fish-eye.jpg', output: 'public/about-scrapbook/fish-eye.webp', width: 640, quality: 88 },
   { source: 'media-source/bodies-cover.jpeg', output: 'public/bodies-cover.webp', quality: 92 },
+  { source: 'media-source/ouroborus-cover.jpeg', output: 'public/ouroborus-cover.webp', quality: 82 },
   { source: 'media-source/late-registration-cover.jpg', output: 'public/late-registration-cover.webp', quality: 92 },
   { source: 'media-source/nujabes-album-cover.jpg', output: 'public/nujabes-album-cover.webp', quality: 76 },
   { source: 'media-source/muas-website-preview.png', output: 'public/muas/muas-website-preview.webp', width: 960, quality: 90 },

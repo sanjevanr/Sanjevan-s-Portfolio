@@ -6,7 +6,7 @@ import SpotifyPlayer from '../SpotifyPlayer'
 
 type Place = 'media' | 'type' | 'photo' | 'video' | `portfolio:${string}` | `video-item:${string}`
 type Entry =
-  | { kind: 'folder'; id: 'type' | 'photo' | 'video'; name: string; count: number }
+  | { kind: 'folder'; id: 'type' | 'photo' | 'video'; name: string }
   | { kind: 'portfolio'; item: FinderPhotoPortfolio }
   | { kind: 'video'; item: FinderVideo }
 
@@ -45,6 +45,7 @@ function MediaFinder() {
   const [selected, setSelected] = useState<string | null>(null)
   const [missingPreview, setMissingPreview] = useState(false)
   const canvasRef = useRef<HTMLDivElement>(null)
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const touchOpensRef = useRef(false)
 
   const goTo = (target: Place, record = true) => {
@@ -65,10 +66,10 @@ function MediaFinder() {
     goTo(target, false)
   }
   const entries = useMemo<Entry[]>(() => {
-    if (place === 'media') return [{ kind: 'folder', id: 'type', name: 'Type', count: 2 }]
+    if (place === 'media') return [{ kind: 'folder', id: 'type', name: 'Type' }]
     if (place === 'type') return [
-      { kind: 'folder', id: 'photo', name: 'Photo', count: photoPortfolios.length },
-      { kind: 'folder', id: 'video', name: 'Video', count: videoUploads.length },
+      { kind: 'folder', id: 'photo', name: 'Photo' },
+      { kind: 'folder', id: 'video', name: 'Video' },
     ]
     if (place === 'photo') return photoPortfolios.map((item) => ({ kind: 'portfolio', item }))
     if (place === 'video') return videoUploads.map((item) => ({ kind: 'video', item }))
@@ -91,12 +92,27 @@ function MediaFinder() {
       : undefined
 
   const handleCanvasKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter' && selected) {
-      const item = entries.find((entry) => entry.kind === 'folder' ? entry.id === selected : entry.kind === 'portfolio' ? entry.item.id === selected : entry.item.id === selected)
-      if (item) openEntry(item)
-    } else if (event.key === 'Backspace' || event.key === 'ArrowLeft') {
+    if (event.key === 'Backspace' || event.key === 'ArrowLeft') {
       if (event.target === canvasRef.current) goUp()
+      return
     }
+    const currentIndex = entries.findIndex((entry) => (entry.kind === 'folder' ? entry.id : entry.item.id) === selected)
+    let nextIndex = currentIndex
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = Math.min(entries.length - 1, Math.max(0, currentIndex + 1))
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = Math.max(0, currentIndex < 0 ? 0 : currentIndex - 1)
+    else if (event.key === 'Home') nextIndex = 0
+    else if (event.key === 'End') nextIndex = entries.length - 1
+    else if (event.key === 'Enter' && selected) {
+      const item = entries.find((entry) => (entry.kind === 'folder' ? entry.id : entry.item.id) === selected)
+      if (item) openEntry(item)
+      return
+    } else return
+    if (entries.length === 0 || nextIndex < 0) return
+    event.preventDefault()
+    const next = entries[nextIndex]
+    const nextId = next.kind === 'folder' ? next.id : next.item.id
+    setSelected(nextId)
+    optionRefs.current[nextIndex]?.focus()
   }
   const handleItemPointerDown = (event: PointerEvent<HTMLElement>, entry: Entry) => {
     touchOpensRef.current = event.pointerType === 'touch'
@@ -118,13 +134,12 @@ function MediaFinder() {
             </span>
           ))}
         </nav>
-        <span className="finder-toolbar-count">{totalItems} {totalItems === 1 ? 'item' : 'items'}</span>
       </div>
 
       <div className="finder-layout">
         <aside className="finder-sidebar" aria-label="Finder shortcuts">
           <h3>Favourites</h3>
-          <button className={place === 'type' ? 'is-current' : ''} type="button" onClick={() => goTo('type')}><FinderIcon type="computer" />Media</button>
+          <button className={place === 'type' ? 'is-current' : ''} type="button" onClick={() => goTo('type')}><FinderIcon type="computer" />Type</button>
           <button className={place === 'photo' ? 'is-current' : ''} type="button" onClick={() => goTo('photo')}><FinderIcon type="photo" />Photo</button>
           <button className={place === 'video' ? 'is-current' : ''} type="button" onClick={() => goTo('video')}><FinderIcon type="video" />Video</button>
           <h3>Places</h3>
@@ -147,29 +162,29 @@ function MediaFinder() {
               )}
             </div>
           ) : entries.length ? (
-            <div className="finder-items" role="listbox" aria-label="Files and folders">
+            <div className={`finder-items${place === 'type' || place === 'media' ? ' finder-items--folders' : ''}`} role="listbox" aria-label="Files and folders">
               {entries.map((entry) => {
                 const id = entry.kind === 'folder' ? entry.id : entry.item.id
                 const name = entry.kind === 'folder' ? entry.name : entry.kind === 'portfolio' ? entry.item.name : entry.item.title
                 const icon = entry.kind === 'folder' ? 'folder' : entry.kind === 'portfolio' ? 'photo' : 'video'
                 return (
                   <button
+                    ref={(node) => { optionRefs.current[entries.indexOf(entry)] = node }}
                     key={id}
                     className={`finder-item${selected === id ? ' is-selected' : ''}`}
                     type="button"
                     role="option"
                     aria-selected={selected === id}
+                    tabIndex={selected === id || (selected === null && entries.indexOf(entry) === 0) ? 0 : -1}
+                    onFocus={() => setSelected(id)}
                     onPointerDown={(event) => handleItemPointerDown(event, entry)}
                     onClick={(event) => {
                       if (event.detail > 1 && !touchOpensRef.current) openEntry(entry)
                       else setSelected(id)
                     }}
-                    onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); openEntry(entry) } }}
-                    onDoubleClick={() => openEntry(entry)}
                   >
                     <FinderIcon type={icon} />
                     <span className="finder-item-name">{name}</span>
-                    {entry.kind === 'folder' && <small>{entry.count}</small>}
                   </button>
                 )
               })}

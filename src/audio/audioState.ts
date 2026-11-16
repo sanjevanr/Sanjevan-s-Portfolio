@@ -1,4 +1,4 @@
-export type TrackId = 'home' | 'projects' | 'about'
+export type TrackId = 'home' | 'projects' | 'about' | 'media'
 export type DesiredPlayback = 'playing' | 'paused'
 export type ActualPlayback = 'playing' | 'paused' | 'loading' | 'blocked' | 'error'
 
@@ -19,6 +19,7 @@ export function trackIdForPath(pathname: string): TrackId | null {
   if (pathname === '/') return 'home'
   if (pathname === '/projects') return 'projects'
   if (pathname === '/about') return 'about'
+  if (pathname === '/media') return 'media'
   return null
 }
 
@@ -35,6 +36,7 @@ export function createInitialState(pathname: string, isPhone = false): AudioCont
       home: { desiredPlayback: 'playing' },
       projects: { desiredPlayback: 'playing' },
       about: { desiredPlayback: 'playing' },
+      media: { desiredPlayback: 'playing' },
     },
     actualPlayback: activeTrackId ? 'loading' : 'paused',
     operationId: 0,
