@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { photoPortfolios, videoUploads, type FinderPhotoPortfolio, type FinderVideo } from '../../data/mediaLibrary'
 import { mobileHomeQuery, tabletHomeQuery, useMediaQuery } from '../HomeAudio'
 import RetroWindow from '../RetroWindow'
@@ -40,20 +40,26 @@ function FinderIcon({ type, file = false }: { type: 'computer' | 'folder' | 'pho
   return <span className="finder-link-icon finder-link-icon--youtube" aria-hidden="true">▶</span>
 }
 
-function MediaFinder() {
+function MediaFinder({ onVideoPreviewChange, preferWideThumbnail }: { onVideoPreviewChange: (isPreview: boolean) => void; preferWideThumbnail: boolean }) {
   const [place, setPlace] = useState<Place>('type')
   const [history, setHistory] = useState<Place[]>(['type'])
   const [historyIndex, setHistoryIndex] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [missingPreview, setMissingPreview] = useState(false)
+  const [thumbnailFallback, setThumbnailFallback] = useState(false)
   const canvasRef = useRef<HTMLDivElement>(null)
   const optionRefs = useRef<Array<HTMLButtonElement | null>>([])
   const touchOpensRef = useRef(false)
+
+  useEffect(() => {
+    onVideoPreviewChange(place.startsWith('video-item:'))
+  }, [onVideoPreviewChange, place])
 
   const goTo = (target: Place, record = true) => {
     setPlace(target)
     setSelected(null)
     setMissingPreview(false)
+    setThumbnailFallback(false)
     if (record) {
       const nextHistory = history.slice(0, historyIndex + 1)
       if (nextHistory[nextHistory.length - 1] !== target) nextHistory.push(target)
@@ -122,7 +128,7 @@ function MediaFinder() {
   }
 
   return (
-    <div className="finder-window">
+    <div className={`finder-window${place.startsWith('video-item:') ? ' finder-window--video-preview' : ''}`}>
       <div className="finder-toolbar" aria-label="Finder toolbar">
         <div className="finder-history-controls">
           <button type="button" aria-label="Back" title="Back" disabled={historyIndex <= 0} onClick={() => moveHistory(historyIndex - 1)}>‹</button>
@@ -130,7 +136,7 @@ function MediaFinder() {
         </div>
         <nav className="finder-breadcrumbs" aria-label="Current folder path">
           {pathFor(place).map((part, index, path) => (
-            <span className="finder-breadcrumb" key={`${part}-${index}`}>
+            <span className={`finder-breadcrumb${index === path.length - 1 ? ' is-current' : ''}`} key={`${part}-${index}`}>
               {index > 0 && <span aria-hidden="true">›</span>}
               <button type="button" aria-current={index === path.length - 1 ? 'location' : undefined} onClick={() => goTo(part)}>{placeTitle(part)}</button>
             </span>
@@ -167,8 +173,11 @@ function MediaFinder() {
                     {currentItem.song && <div><dt>Song</dt><dd>{currentItem.song}</dd></div>}
                   </dl>
                 </section>
-                <a className="finder-video-thumbnail" href={currentItem.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${currentItem.title} on YouTube (opens in a new tab)`}>
-                  {!missingPreview ? <img src={currentItem.thumbnail} alt={`${currentItem.title} YouTube thumbnail`} onError={() => setMissingPreview(true)} /> : <div className="finder-video-fallback"><FinderIcon type="video" file /><span>Video preview unavailable</span></div>}
+                <a className={`finder-video-thumbnail${currentItem.id === 'biovortex' ? ' finder-video-thumbnail--biovortex' : ''}`} href={currentItem.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${currentItem.title} on YouTube (opens in a new tab)`}>
+                  {!missingPreview ? <img src={currentItem.id === 'biovortex' && preferWideThumbnail && !thumbnailFallback ? 'https://i.ytimg.com/vi/cJjj_YPVw1I/maxresdefault.jpg' : currentItem.thumbnail} alt={`${currentItem.title} YouTube thumbnail`} onError={() => {
+                    if (currentItem.id === 'biovortex' && preferWideThumbnail && !thumbnailFallback) setThumbnailFallback(true)
+                    else setMissingPreview(true)
+                  }} /> : <div className="finder-video-fallback"><FinderIcon type="video" file /><span>Video preview unavailable</span></div>}
                   {!missingPreview && <span className="finder-video-play" aria-hidden="true"><svg viewBox="0 0 68 48" focusable="false"><path d="M66.52 7.1a8 8 0 0 0-5.64-5.66C55.9 0 34 0 34 0S12.1 0 7.12 1.44A8 8 0 0 0 1.48 7.1C0 12.1 0 24 0 24s0 11.9 1.48 16.9a8 8 0 0 0 5.64 5.66C12.1 48 34 48 34 48s21.9 0 26.88-1.44a8 8 0 0 0 5.64-5.66C68 35.9 68 24 68 24s0-11.9-1.48-16.9Z" fill="currentColor" /><path d="m27 34.5 18-10.5-18-10.5v21Z" fill="#fff" /></svg></span>}
                   {currentItem.duration && <span className="finder-video-duration">{currentItem.duration}</span>}
                 </a>
@@ -216,12 +225,13 @@ function MediaFinder() {
 export default function MediaPage() {
   const isPhone = useMediaQuery(mobileHomeQuery)
   const isTablet = useMediaQuery(tabletHomeQuery)
+  const [isVideoPreview, setIsVideoPreview] = useState(false)
   return (
     <main className={`page-shell page-shell--media${isPhone ? ' page-shell--media-phone' : ''}`}>
       <div className="media-stage">
         <div className={`media-collage${isTablet ? ' media-collage--tablet' : ''}`}>
-          <RetroWindow title="Finder" accessibleLabel="Media Finder" showTitle className="media-finder-window" expandedCloseAndRestore>
-            <MediaFinder />
+          <RetroWindow title="Finder" accessibleLabel="Media Finder" showTitle className={`media-finder-window${isVideoPreview ? ' media-finder-window--video-preview' : ''}`} expandedCloseAndRestore>
+            <MediaFinder onVideoPreviewChange={setIsVideoPreview} preferWideThumbnail={isTablet} />
           </RetroWindow>
           {!isPhone && (
             <div className="media-dock">
