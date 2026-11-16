@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode, type RefObject } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { projectMediaCaption, projectMediaPlaceholder, type PortfolioProject, type ProjectMedia } from '../../data/projects'
+import RetroScrollbar from '../RetroScrollbar'
 
 const tabs = [
   { id: 'overview', label: 'Overview' },
@@ -343,128 +344,6 @@ function Media({
   )
 }
 
-const MIN_THUMB = 24
-const ARROW_STEP = 40
-
-/* Drawn scrollbar over native scrolling. macOS and iOS overlay scrollbars
-   hide native thumbs, so the native bar is hidden and this one mirrors it. */
-function RetroScrollbar({ targetRef, contentKey }: { targetRef: RefObject<HTMLDivElement | null>; contentKey: string }) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const thumbRef = useRef<HTMLDivElement>(null)
-  const geometry = useRef({ size: 0, travel: 0, range: 0 })
-  const repeatRef = useRef<number | null>(null)
-
-  const update = useCallback(() => {
-    const target = targetRef.current
-    const track = trackRef.current
-    const thumb = thumbRef.current
-    if (!target || !track || !thumb) return
-    const range = target.scrollHeight - target.clientHeight
-    const trackHeight = track.clientHeight
-    if (range <= 1 || trackHeight <= 0) {
-      geometry.current = { size: 0, travel: 0, range: 0 }
-      thumb.hidden = true
-      return
-    }
-    const size = Math.min(trackHeight, Math.max(MIN_THUMB, trackHeight * target.clientHeight / target.scrollHeight))
-    const travel = trackHeight - size
-    geometry.current = { size, travel, range }
-    thumb.hidden = false
-    thumb.style.height = `${size}px`
-    thumb.style.transform = `translateY(${travel * Math.min(1, target.scrollTop / range)}px)`
-  }, [targetRef])
-
-  useEffect(() => {
-    const target = targetRef.current
-    if (!target) return
-    let frame = 0
-    const schedule = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(update)
-    }
-    update()
-    target.addEventListener('scroll', schedule, { passive: true })
-    const observer = new ResizeObserver(schedule)
-    observer.observe(target)
-    if (trackRef.current) observer.observe(trackRef.current)
-    for (const child of Array.from(target.children)) observer.observe(child)
-    return () => {
-      cancelAnimationFrame(frame)
-      target.removeEventListener('scroll', schedule)
-      observer.disconnect()
-    }
-  }, [contentKey, targetRef, update])
-
-  const stopRepeat = useCallback(() => {
-    if (repeatRef.current !== null) window.clearInterval(repeatRef.current)
-    repeatRef.current = null
-  }, [])
-
-  useEffect(() => stopRepeat, [stopRepeat])
-
-  const scrollBy = (top: number) => targetRef.current?.scrollBy({ top })
-
-  const startRepeat = (step: () => void) => (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0) return
-    event.preventDefault()
-    step()
-    stopRepeat()
-    const startedAt = Date.now()
-    repeatRef.current = window.setInterval(() => {
-      if (Date.now() - startedAt > 320) step()
-    }, 60)
-  }
-
-  const onTrackDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.target !== event.currentTarget) return
-    const thumb = thumbRef.current
-    const target = targetRef.current
-    if (!thumb || !target || thumb.hidden) return
-    const page = target.clientHeight * 0.9
-    startRepeat(() => {
-      const box = thumb.getBoundingClientRect()
-      if (event.clientY < box.top) scrollBy(-page)
-      else if (event.clientY > box.bottom) scrollBy(page)
-    })(event)
-  }
-
-  const onThumbDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const target = targetRef.current
-    if (!target || event.button !== 0) return
-    event.preventDefault()
-    const thumb = event.currentTarget
-    thumb.setPointerCapture(event.pointerId)
-    const startY = event.clientY
-    const startTop = target.scrollTop
-    const { travel, range } = geometry.current
-    const move = (moveEvent: PointerEvent) => {
-      if (travel > 0) target.scrollTop = startTop + (moveEvent.clientY - startY) * range / travel
-    }
-    const end = () => {
-      thumb.removeEventListener('pointermove', move)
-      thumb.removeEventListener('pointerup', end)
-      thumb.removeEventListener('pointercancel', end)
-      thumb.classList.remove('retro-scrollbar__thumb--active')
-    }
-    thumb.classList.add('retro-scrollbar__thumb--active')
-    thumb.addEventListener('pointermove', move)
-    thumb.addEventListener('pointerup', end)
-    thumb.addEventListener('pointercancel', end)
-  }
-
-  const repeatEvents = { onPointerUp: stopRepeat, onPointerLeave: stopRepeat, onPointerCancel: stopRepeat }
-
-  return (
-    <div className="retro-scrollbar" aria-hidden="true">
-      <div className="retro-scrollbar__arrow retro-scrollbar__arrow--up" onPointerDown={startRepeat(() => scrollBy(-ARROW_STEP))} {...repeatEvents} />
-      <div ref={trackRef} className="retro-scrollbar__track" onPointerDown={onTrackDown} {...repeatEvents}>
-        <div ref={thumbRef} className="retro-scrollbar__thumb" onPointerDown={onThumbDown} hidden />
-      </div>
-      <div className="retro-scrollbar__arrow retro-scrollbar__arrow--down" onPointerDown={startRepeat(() => scrollBy(ARROW_STEP))} {...repeatEvents} />
-    </div>
-  )
-}
-
 type ProjectBrowserProps = {
   project: PortfolioProject
   activeTab: ProjectBrowserTab
@@ -535,7 +414,7 @@ export default function ProjectBrowser({ project, activeTab, onTabChange, compac
         </div>
       </header>
       <div className="retro-window__body project-browser__viewport">
-        <div ref={scrollerRef} className={`project-browser__scroller${activeTab === 'media' ? ' project-browser__scroller--media' : ''}`}>
+        <div id={`${baseId}-scroll-region`} ref={scrollerRef} className={`project-browser__scroller${activeTab === 'media' ? ' project-browser__scroller--media' : ''}`}>
           <div
             key={activeTab}
             id={`${baseId}-panel`}
@@ -553,7 +432,7 @@ export default function ProjectBrowser({ project, activeTab, onTabChange, compac
             )}
           </div>
         </div>
-        <RetroScrollbar targetRef={scrollerRef} contentKey={`${project.id}-${activeTab}-${compact}`} />
+        <RetroScrollbar targetRef={scrollerRef} targetId={`${baseId}-scroll-region`} contentKey={`${project.id}-${activeTab}-${compact}`} />
       </div>
     </section>
   )

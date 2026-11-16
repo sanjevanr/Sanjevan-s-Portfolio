@@ -52,17 +52,114 @@
   --contact-icons-gap: 32px;
   --contact-icons-size: 56px;
 
-  /* ABOUT PAGE — DESKTOP MUSIC PLAYER */
-  --about-player-left: 70%;
-  --about-player-top: 70%;
+  /* ============================================================
+     ABOUT PAGE — DESKTOP POSITION CONTROLS
+     Major element positions use centre coordinates on the collage.
+     ============================================================ */
+
+  /* Music player */
+  --about-player-left: 0%;
+  --about-player-top: 30%;
   --about-player-width: 320px;
   --about-player-height: 360px;
 
-  /* ABOUT PAGE — TABLET MUSIC PLAYER */
-  --about-tablet-player-left: 650px;
-  --about-tablet-player-top: 570px;
-  --about-tablet-player-width: 320px;
+  /* Headshot */
+  --about-headshot-left: 5%;
+  --about-headshot-top: 68%;
+  --about-headshot-width: 240px;
+
+  /* Career timeline */
+  --about-timeline-left: 50%;
+  --about-timeline-top: 51%;
+  --about-timeline-width: 700px;
+  --about-timeline-height: 700px;
+
+  /* ABOUT PAGE — TABLET COLLAGE POSITIONS
+     Pixel offsets are on the smaller tablet canvas; other positions
+     use centre percentages on that same canvas. */
+  --about-tablet-player-left: 135px;
+  --about-tablet-player-top: 180px;
+  --about-tablet-player-width: var(--music-window-width);
   --about-tablet-player-height: 360px;
+  --about-tablet-headshot-left: 25%;
+  --about-tablet-headshot-top: 58%;
+  --about-tablet-headshot-width: 200px;
+  --about-tablet-timeline-left: 70%;
+  --about-tablet-timeline-top: 53%;
+  --about-tablet-timeline-width: 435px;
+  --about-tablet-timeline-height: 550px;
+
+  /* ============================================================
+     ABOUT PAGE — SCRAPBOOK DESKTOP CONTROLS
+     ============================================================ */
+
+  /* Entire scrapbook */
+  --about-scrapbook-left: 87%;
+  --about-scrapbook-top: 8%;
+  --about-scrapbook-width: 240px;
+  --about-scrapbook-height: 480px;
+
+  /* PHOTO 1 */
+  --about-photo-1-left: 0px;
+  --about-photo-1-top: 0px;
+  --about-photo-1-width: 185px;
+  --about-photo-1-rotation: -5deg;
+  --about-photo-1-z: 1;
+
+  /* PHOTO 2 */
+  --about-photo-2-left: 60px;
+  --about-photo-2-top: 150px;
+  --about-photo-2-width: 154px;
+  --about-photo-2-rotation: 4deg;
+  --about-photo-2-z: 2;
+
+  /* PHOTO 3 */
+  --about-photo-3-left: 7px;
+  --about-photo-3-top: 300px;
+  --about-photo-3-width: 178px;
+  --about-photo-3-rotation: -2deg;
+  --about-photo-3-z: 3;
+
+  /* PHOTO 4 */
+  --about-photo-4-left: 82px;
+  --about-photo-4-top: 425px;
+  --about-photo-4-width: 154px;
+  --about-photo-4-rotation: 3deg;
+  --about-photo-4-z: 4;
+
+  /* ABOUT PAGE — TABLET SCRAPBOOK CONTROLS */
+  --about-tablet-scrapbook-left: 77%;
+  --about-tablet-scrapbook-top: 0%;
+  --about-tablet-scrapbook-width: 176px;
+  --about-tablet-scrapbook-height: 112px;
+
+  /* PHOTO 1 */
+  --about-tablet-photo-1-left: 0px;
+  --about-tablet-photo-1-top: 0px;
+  --about-tablet-photo-1-width: 96px;
+  --about-tablet-photo-1-rotation: -5deg;
+  --about-tablet-photo-1-z: 1;
+
+  /* PHOTO 2 */
+  --about-tablet-photo-2-left: 77px;
+  --about-tablet-photo-2-top: 31px;
+  --about-tablet-photo-2-width: 96px;
+  --about-tablet-photo-2-rotation: 4deg;
+  --about-tablet-photo-2-z: 2;
+
+  /* PHOTO 3 */
+  --about-tablet-photo-3-left: 3px;
+  --about-tablet-photo-3-top: 35px;
+  --about-tablet-photo-3-width: 96px;
+  --about-tablet-photo-3-rotation: -2deg;
+  --about-tablet-photo-3-z: 3;
+
+  /* PHOTO 4 */
+  --about-tablet-photo-4-left: 78px;
+  --about-tablet-photo-4-top: 3px;
+  --about-tablet-photo-4-width: 96px;
+  --about-tablet-photo-4-rotation: 3deg;
+  --about-tablet-photo-4-z: 4;
 
   /* ============================================================
      DESKTOP PROJECTS
@@ -4126,7 +4223,7 @@ body {
 }
 
 /* ============================================================
-   ABOUT PAGE — FLOATING MUSIC PLAYER
+   ABOUT PAGE — HEADSHOT AND CAREER.EXE
    ============================================================ */
 
 .page-shell--about {
@@ -4149,75 +4246,557 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 1100px;
-  height: 840px;
   transform-origin: center;
   pointer-events: none;
 }
 
-.about-collage > .photo-frame--about-headshot,
-.about-collage > section.about-player-window {
+.about-collage > :is(.about-headshot-wrap, section.about-player-window, section.about-career-window) {
   position: absolute;
-  z-index: 4;
   pointer-events: auto;
 }
 
+.about-player-window {
+  z-index: 4;
+  top: var(--about-player-top);
+  left: var(--about-player-left);
+  width: var(--about-player-width, var(--music-window-width));
+  height: var(--about-player-height, var(--music-window-height));
+  max-height: none;
+  transform: translate(-50%, -50%) scale(var(--about-player-scale-adjustment, 1));
+  transform-origin: center;
+}
+
+.about-headshot-wrap {
+  z-index: 6;
+  top: var(--about-headshot-top);
+  left: var(--about-headshot-left);
+  width: var(--about-headshot-width);
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
 .photo-frame--about-headshot {
-  width: 420px;
-  aspect-ratio: 1;
+  width: 100%;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 1 / 1;
+  margin: 0;
   padding: 8px;
+  background: linear-gradient(135deg, #e1e4e5, #929ba1 48%, #d7dbde);
   box-shadow:
     inset 1px 1px 0 #fff,
-    inset -2px -2px 0 #7c858c,
+    inset -2px -2px 0 #68747c,
     0 8px 18px rgb(0 0 0 / .3);
 }
 
 .photo-frame--about-headshot .photo-frame__inner {
   min-height: 0;
+  background: #d6d4ce;
 }
 
-.about-collage > .photo-frame--about-headshot {
-  top: 43%;
-  left: 25%;
-  transform: translate(-50%, -50%);
+.photo-frame--about-headshot .featured-photo {
+  object-fit: contain;
 }
 
-.about-collage > section.about-player-window {
-  top: var(--about-player-top);
-  left: var(--about-player-left);
-  width: var(--about-player-width);
-  height: var(--about-player-height);
+.photo-frame--expanded.photo-frame--about-headshot {
+  width: min(86vw, 70dvh, 720px);
+  max-width: 86vw;
+  max-height: 78dvh;
+  aspect-ratio: 1 / 1;
+}
+
+.about-headshot-caption {
+  display: block;
+  margin-top: 7px;
+  color: #eff2ec;
+  font: 600 9px/1.2 var(--mono);
+  letter-spacing: .08em;
+  text-shadow: 0 1px 3px rgb(0 0 0 / .35);
+}
+
+.about-career-window {
+  width: var(--about-timeline-width);
+  height: var(--about-timeline-height);
+  min-width: 0;
+  max-width: none;
   max-height: none;
+  border: 3px solid #d9e0e4;
+  outline: 1px solid #263946;
+  background: linear-gradient(145deg, #f7fafb 0%, #a9b5bc 48%, #d5dce0 100%);
+  box-shadow:
+    inset 2px 2px 0 #fff,
+    inset -2px -2px 0 #65747d,
+    1px 1px 0 #3e4d56,
+    0 11px 24px rgb(0 0 0 / .32);
+}
+
+.about-collage > section.about-career-window {
+  z-index: 5;
+  top: var(--about-timeline-top);
+  left: var(--about-timeline-left);
   transform: translate(-50%, -50%);
 }
 
-.about-player-window .retro-window__body {
+.about-career-window > .retro-window__titlebar,
+.retro-window__dialog.about-career-window > .retro-window__titlebar {
+  min-height: 38px;
+  flex-basis: 38px;
+}
+
+.about-career-window > .retro-window__body {
+  display: flex;
+  min-width: 0;
   min-height: 0;
+  flex: 1 1 auto;
+  padding: 5px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #cbd3d8, #7f8d96 48%, #c5cdd2);
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #667780;
 }
 
-.about-player-window .spotify-player {
+/* The maximised view reuses RetroWindow's native dialog and controls. */
+.retro-window__dialog.about-career-window[open] {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  width: min(94vw, 820px);
+  height: min(88dvh, 780px);
+  max-width: 94vw;
+  max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  margin: auto;
+  flex-direction: column;
+  overflow: hidden;
+  transform: none;
+  border: 3px solid #d9e0e4;
+  outline: 1px solid #263946;
+  background: linear-gradient(145deg, #f7fafb 0%, #a9b5bc 48%, #d5dce0 100%);
+  box-shadow:
+    inset 2px 2px 0 #fff,
+    inset -2px -2px 0 #65747d,
+    1px 1px 0 #3e4d56,
+    0 16px 46px rgb(0 0 0 / .48);
+}
+
+.retro-window__dialog.about-career-window .retro-window__dialog-body {
+  display: flex;
+  width: 100%;
+  min-width: 0;
   min-height: 0;
+  max-height: none;
+  flex: 1 1 auto;
+  align-items: stretch;
+  justify-content: center;
+  padding: 5px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #cbd3d8, #7f8d96 48%, #c5cdd2);
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #667780;
 }
 
-@media (min-width: 761px) and (max-width: 1199px) and (min-height: 740px),
-       (min-width: 600px) and (max-width: 760px) and (min-height: 1000px),
-       (min-width: 1200px) and (max-width: 1230px) and (min-height: 800px),
-       (min-width: 1231px) and (max-width: 1440px) and (min-height: 901px) {
-  .about-collage > .photo-frame--about-headshot {
-    top: 42%;
-    left: 22%;
-    width: 390px;
-  }
-
-  .about-collage--tablet > section.about-player-window {
-    top: var(--about-tablet-player-top);
-    left: var(--about-tablet-player-left);
-    width: var(--about-tablet-player-width);
-    height: var(--about-tablet-player-height);
-  }
+.career-timeline {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  max-width: 720px;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) var(--retro-scrollbar-width);
+  overflow: hidden;
+  margin-inline: auto;
+  color: #f8fcff;
 }
+
+.career-timeline__viewport {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 12px 17px 16px;
+  background:
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, .09) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, #a3c7ff 0%, #357de0 18%, #135ebf 52%, #2c75d4 100%);
+  box-shadow: inset 0 1px 0 #d4edff, inset 0 -2px 0 #4a8bd3;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  touch-action: pan-y;
+}
+
+.career-timeline__viewport::-webkit-scrollbar { display: none; }
+
+.career-timeline__viewport:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -3px;
+}
+
+.career-timeline__list {
+  position: relative;
+  display: flex;
+  height: auto;
+  min-height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0 4px 8px 0;
+  list-style: none;
+}
+
+.career-timeline__list::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: rgb(198 230 249 / .7);
+  content: "";
+}
+
+.career-timeline__entry {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  padding: 0 0 15px 25px;
+}
+
+.career-timeline__entry + .career-timeline__entry { padding-top: 3px; }
+.career-timeline__entry:last-child { padding-bottom: 0; }
+
+.career-timeline__node {
+  position: absolute;
+  top: 25px;
+  left: 2px;
+  z-index: 2;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #d9f1ff;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f8fdff 0%, #c1e8fb 54%, #78bfe8 100%);
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / .95), 0 1px 2px rgb(0 31 67 / .42);
+}
+
+.career-timeline__toggle {
+  display: grid;
+  width: 100%;
+  min-height: 62px;
+  grid-template-columns: 48px minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 2px 6px 0;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: color .16s ease, text-shadow .16s ease;
+}
+
+.career-timeline__toggle:hover .career-timeline__organisation,
+.career-timeline__entry.is-expanded .career-timeline__organisation {
+  text-shadow: 0 0 10px rgb(200 237 255 / .42);
+}
+
+.career-timeline__toggle:focus-visible {
+  position: relative;
+  z-index: 3;
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.career-timeline__summary { display: block; min-width: 0; }
+
+.career-timeline__logo-tile {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  overflow: hidden;
+  padding: 3px;
+  border: 1px solid #d6dfe4;
+  border-radius: 2px;
+  background: linear-gradient(145deg, #fbfdfe, #d9e1e5 52%, #b7c3ca);
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #87969e, 0 1px 2px rgb(0 24 48 / .28);
+}
+
+.career-timeline__logo-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.career-timeline__logo-fallback {
+  color: #15406a;
+  font: 700 12px/1 var(--mono);
+}
+
+.career-timeline__organisation {
+  display: block;
+  overflow-wrap: break-word;
+  color: #fff;
+  font: 700 20px/1.18 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  letter-spacing: -.02em;
+  text-shadow: 0 1px 2px rgb(0 30 70 / .42);
+}
+
+.career-timeline__preview {
+  display: block;
+  margin-top: 5px;
+  color: #e6f6ff;
+  font: 500 15px/1.3 "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.career-timeline__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 10px;
+  margin-top: 5px;
+  color: #c7e8fc;
+  font: 500 11px/1.4 var(--mono);
+}
+
+.career-timeline__status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 5px;
+  border: 1px solid rgb(230 245 255 / .55);
+  background: rgb(15 64 126 / .24);
+  color: #fff;
+  font-size: 9px;
+  line-height: 1.2;
+  letter-spacing: .04em;
+}
+
+.career-timeline__toggle-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgb(226 245 255 / .52);
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgb(211 239 255 / .24), rgb(20 85 139 / .16));
+  color: #fff;
+  font: 400 22px/1 "Helvetica Neue", sans-serif;
+}
+
+.career-timeline__reveal {
+  display: grid;
+  transition: grid-template-rows .24s ease;
+}
+
+.career-timeline__reveal-inner { min-height: 0; overflow: hidden; }
+
+.career-timeline__roles {
+  margin: 0 4px 4px 58px;
+  padding: 11px 14px;
+  border: 1px solid #4a8bd3;
+  outline: 1px solid #0b3475;
+  background: linear-gradient(180deg, #124b96 0%, #0d3f80 55%, #1553a5 100%);
+  box-shadow: inset 0 1px 0 rgb(212 237 255 / .48), inset 0 -2px 0 #092855;
+}
+
+.career-timeline__role + .career-timeline__role {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(163 199 255 / .34);
+}
+
+.career-timeline__role-heading h3 {
+  margin: 0;
+  color: #fff;
+  font: 700 15px/1.35 "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.career-timeline__role-heading time,
+.career-timeline__role-context {
+  display: block;
+  margin: 4px 0 0;
+  color: #a3c7ff;
+  font: 500 11px/1.4 var(--mono);
+}
+
+.career-timeline__role-context,
+.career-timeline__description { margin-bottom: 0; }
+
+.career-timeline__description {
+  margin-top: 8px;
+  color: #f2f6ff;
+  font: 400 13px/1.55 "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.about-scrapbook {
+  position: absolute;
+  z-index: 2;
+  top: var(--about-scrapbook-top);
+  left: var(--about-scrapbook-left);
+  width: var(--about-scrapbook-width);
+  height: var(--about-scrapbook-height);
+  pointer-events: none;
+}
+
+.about-scrapbook__note {
+  position: absolute;
+  top: var(--note-y);
+  left: var(--note-x);
+  width: var(--note-width);
+  padding: 10px;
+  border: 1px solid #d3c99f;
+  border-radius: 2px;
+  background: linear-gradient(145deg, #fff9df 0%, #f4edce 64%, #e9dfb7 100%);
+  box-shadow:
+    inset 1px 1px 0 #fffdf2,
+    inset -1px -1px 0 #c7ba8e,
+    0 7px 15px rgb(0 0 0 / .2);
+  transform: rotate(var(--note-rotation));
+}
+
+.about-scrapbook__note::before {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 42px;
+  height: 11px;
+  border: 1px solid rgb(196 184 147 / .58);
+  background: rgb(245 237 208 / .82);
+  box-shadow: 0 1px 2px rgb(0 0 0 / .12);
+  content: "";
+  transform: translateX(-50%) rotate(-2deg);
+}
+
+.about-scrapbook__note--one {
+  --note-x: var(--about-photo-1-left);
+  --note-y: var(--about-photo-1-top);
+  --note-width: var(--about-photo-1-width);
+  --note-rotation: var(--about-photo-1-rotation);
+  z-index: var(--about-photo-1-z);
+}
+
+.about-scrapbook__note--two {
+  --note-x: var(--about-photo-2-left);
+  --note-y: var(--about-photo-2-top);
+  --note-width: var(--about-photo-2-width);
+  --note-rotation: var(--about-photo-2-rotation);
+  z-index: var(--about-photo-2-z);
+  --photo-ratio: 3 / 4;
+  --photo-position: 50% 55%;
+}
+
+.about-scrapbook__note--three {
+  --note-x: var(--about-photo-3-left);
+  --note-y: var(--about-photo-3-top);
+  --note-width: var(--about-photo-3-width);
+  --note-rotation: var(--about-photo-3-rotation);
+  z-index: var(--about-photo-3-z);
+  --photo-position: 50% 72%;
+}
+
+.about-scrapbook__note--four {
+  --note-x: var(--about-photo-4-left);
+  --note-y: var(--about-photo-4-top);
+  --note-width: var(--about-photo-4-width);
+  --note-rotation: var(--about-photo-4-rotation);
+  z-index: var(--about-photo-4-z);
+  --photo-ratio: 3 / 4;
+  --photo-position: 50% 50%;
+}
+
+.about-scrapbook__photo {
+  display: block;
+  min-width: 0;
+  aspect-ratio: var(--photo-ratio, 4 / 3);
+  margin: 0;
+  overflow: hidden;
+  border: 5px solid #fffefa;
+  background:
+    repeating-linear-gradient(135deg, rgb(59 91 127 / .06) 0 1px, transparent 1px 7px),
+    linear-gradient(145deg, #e6e9e8, #d5dcd9);
+  box-shadow: inset 0 0 0 1px #bdc6c5, 0 1px 2px rgb(44 46 39 / .16);
+}
+
+.about-scrapbook__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--photo-position, center);
+}
+
+.about-collage--tablet .about-player-window {
+  top: var(--about-tablet-player-top);
+  left: var(--about-tablet-player-left);
+  width: var(--about-tablet-player-width);
+  height: var(--about-tablet-player-height);
+}
+
+.about-collage--tablet .about-headshot-wrap {
+  top: var(--about-tablet-headshot-top);
+  left: var(--about-tablet-headshot-left);
+  width: var(--about-tablet-headshot-width);
+}
+
+.about-collage--tablet > section.about-career-window {
+  top: var(--about-tablet-timeline-top);
+  left: var(--about-tablet-timeline-left);
+  width: var(--about-tablet-timeline-width);
+  height: var(--about-tablet-timeline-height);
+}
+
+.about-collage--tablet .about-scrapbook {
+  top: var(--about-tablet-scrapbook-top);
+  left: var(--about-tablet-scrapbook-left);
+  width: var(--about-tablet-scrapbook-width);
+  height: var(--about-tablet-scrapbook-height);
+}
+
+.about-collage--tablet .about-scrapbook__note { padding: 5px; }
+
+.about-collage--tablet .about-scrapbook__note--one {
+  --note-x: var(--about-tablet-photo-1-left);
+  --note-y: var(--about-tablet-photo-1-top);
+  --note-width: var(--about-tablet-photo-1-width);
+  --note-rotation: var(--about-tablet-photo-1-rotation);
+  z-index: var(--about-tablet-photo-1-z);
+}
+
+.about-collage--tablet .about-scrapbook__note--two {
+  --note-x: var(--about-tablet-photo-2-left);
+  --note-y: var(--about-tablet-photo-2-top);
+  --note-width: var(--about-tablet-photo-2-width);
+  --note-rotation: var(--about-tablet-photo-2-rotation);
+  z-index: var(--about-tablet-photo-2-z);
+}
+
+.about-collage--tablet .about-scrapbook__note--three {
+  --note-x: var(--about-tablet-photo-3-left);
+  --note-y: var(--about-tablet-photo-3-top);
+  --note-width: var(--about-tablet-photo-3-width);
+  --note-rotation: var(--about-tablet-photo-3-rotation);
+  z-index: var(--about-tablet-photo-3-z);
+}
+
+.about-collage--tablet .about-scrapbook__note--four {
+  --note-x: var(--about-tablet-photo-4-left);
+  --note-y: var(--about-tablet-photo-4-top);
+  --note-width: var(--about-tablet-photo-4-width);
+  --note-rotation: var(--about-tablet-photo-4-rotation);
+  z-index: var(--about-tablet-photo-4-z);
+}
+
+.about-collage--tablet .about-scrapbook__photo { --photo-ratio: 4 / 3; }
+
+.about-collage--tablet .career-timeline__organisation { font-size: 16px; }
+.about-collage--tablet .career-timeline__preview { font-size: 12px; }
+.about-collage--tablet .career-timeline__meta { font-size: 9px; }
+.about-collage--tablet .career-timeline__description { font-size: 12px; }
 
 @media (max-width: 760px) and (max-height: 999px), (max-width: 599px) {
+  .site--about,
+  .site--about .site-content {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
   .page-shell--about-phone {
     position: relative;
     inset: auto;
@@ -4225,25 +4804,73 @@ body {
     width: 100%;
     height: auto;
     min-height: 0;
-    padding: calc(var(--site-header-height, 120px) + 20px) 16px 24px;
+    margin: 0;
+    padding: 24px 16px 32px;
     overflow: visible;
   }
 
   .about-stage { display: none; }
 
-  .page-shell--about-phone > .photo-frame--about-headshot {
-    display: block;
-    position: relative;
-    z-index: 1;
-    width: min(100%, 420px);
+  .about-mobile-content {
+    display: flex;
+    width: min(100%, 620px);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 26px;
     margin: 0 auto;
-    pointer-events: auto;
-    transform: none;
+    padding: 0 0 24px;
   }
 
-  .page-shell--about-phone > .photo-frame--about-headshot .photo-frame__inner {
-    aspect-ratio: 1;
+  .about-headshot-wrap {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: min(240px, 68vw);
+    margin: 0 auto;
+    transform: none;
+    pointer-events: auto;
   }
+
+  .photo-frame--about-headshot { width: 100%; }
+
+  .about-mobile-content > .about-career-window {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: min(74dvh, 660px);
+    min-height: 390px;
+    max-height: none;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .career-timeline { padding: 0; }
+  .career-timeline__viewport { padding: 10px 10px 12px 12px; }
+  .career-timeline__entry { padding-left: 20px; padding-bottom: 14px; }
+  .career-timeline__list::before { left: 5px; }
+  .career-timeline__node { left: 1px; width: 8px; height: 8px; }
+  .career-timeline__toggle { grid-template-columns: 40px minmax(0, 1fr) 32px; gap: 8px; min-height: 62px; }
+  .career-timeline__logo-tile { width: 40px; height: 40px; }
+  .career-timeline__organisation { font-size: 16px; }
+  .career-timeline__preview { font-size: 13px; }
+  .career-timeline__meta { font-size: 10px; }
+  .career-timeline__roles { margin-left: 48px; padding: 11px 12px; }
+  .career-timeline__role-heading h3 { font-size: 12px; }
+  .career-timeline__role-heading time,
+  .career-timeline__role-context { font-size: 10px; }
+  .career-timeline__description { font-size: 12px; line-height: 1.5; }
+
+  .retro-window__dialog.about-career-window[open] {
+    width: calc(100vw - 24px);
+    height: min(88dvh, 760px);
+    max-width: calc(100vw - 24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .career-timeline__reveal,
+  .career-timeline__toggle { transition-duration: .01ms; }
 }
 
 /* ============================================================
@@ -4581,6 +5208,8 @@ body {
 .retro-scrollbar__thumb,
 .retro-scrollbar__arrow {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   border: 1px solid #4f606b;
   border-radius: 1px;
   background: linear-gradient(90deg, #f4f7f8 0%, #d6dee2 45%, #b0bec6 100%);
@@ -4594,12 +5223,11 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  cursor: default;
+  cursor: grab;
+  touch-action: none;
 }
 
-.retro-scrollbar__thumb[hidden] {
-  display: none;
-}
+.retro-scrollbar__thumb[hidden] { display: none; }
 
 .retro-scrollbar__thumb::before {
   position: absolute;
@@ -4625,8 +5253,31 @@ body {
     inset -1px -1px 0 #f4f7f8;
 }
 
+.retro-scrollbar__thumb--active { cursor: grabbing; }
+
+.retro-scrollbar__thumb:focus-visible,
+.retro-scrollbar__arrow:focus-visible {
+  z-index: 1;
+  outline: 2px solid #163d61;
+  outline-offset: -3px;
+}
+
+.retro-scrollbar__thumb--disabled {
+  cursor: default;
+}
+
 .retro-scrollbar__arrow {
   position: relative;
+  appearance: none;
+  cursor: pointer;
+}
+
+.retro-scrollbar__arrow:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.retro-scrollbar__arrow:disabled {
+  filter: grayscale(.35);
   cursor: default;
 }
 

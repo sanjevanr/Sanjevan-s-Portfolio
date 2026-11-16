@@ -77,7 +77,7 @@ export const projects: PortfolioProject[] = [
       'The platform includes student onboarding and profiles, matching students to relevant SME projects, and messaging and collaboration functionality. AI-assisted scoping helps businesses shape project briefs.',
       'My contributions were collaborative: application development, messaging, database improvements, implementation and refinement with the team. The experience helped me understand how research and feasibility assessment lead into building and pitching a startup idea.',
     ],
-    skillsLearned: ['Full-stack development with React, Next.js and TypeScript', 'Supabase, PostgreSQL, database design and access control', 'pgvector similarity search and Gemini integration', 'Startup research, cost evaluation, value proposition development and pitching', 'Collaborative MVP development and iteration'],
+    skillsLearned: ['Full-stack development with React, Next.js and TypeScript', 'Supabase, PostgreSQL, database design and access control', 'pgvector similarity search and Gemini integration', 'Startup research, value propositions and pitching', 'Collaborative MVP development and iteration'],
     achievements: ['Our team was selected as one of the top teams in the faculty to pitch UniLinq before a panel that included representatives from Antler and Monash University researchers. We also won the People’s Choice award.'],
     links: [
       { label: 'VISIT UNILINQ', shortLabel: 'UNILINQ', url: 'https://unilinq.org' },
