@@ -13,7 +13,7 @@ function EyeOfHorusContent() {
         </div>
       </div>
       <picture className="eye-panel__art">
-        <source media="(prefers-reduced-motion: reduce)" srcSet="/rotating-eye-static.png" />
+        <source media="(prefers-reduced-motion: reduce)" srcSet="/rotating-eye-static.webp" />
         <img className="eye-panel__gif" src="/rotating-eye.gif" alt="" />
       </picture>
     </article>

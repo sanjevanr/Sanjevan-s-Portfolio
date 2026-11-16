@@ -3,11 +3,12 @@ import { career } from '../data/career'
 import RetroScrollbar from './RetroScrollbar'
 
 const companyLogos: Record<string, string> = {
-  muas: '/company-logos/monash-uncrewed-aerial-systems.jpeg',
-  'lake-press': '/company-logos/lake-press.jpeg',
-  campion: '/company-logos/campion-education.jpeg',
-  mcav: '/company-logos/monash-connected-autonomous-vehicle.jpeg',
-  nandos: '/company-logos/nandos-australia-new-zealand.jpeg',
+  'deloitte-digital': '/company-logos/deloitte-digital.webp',
+  muas: '/company-logos/monash-uncrewed-aerial-systems.webp',
+  'lake-press': '/company-logos/lake-press.webp',
+  campion: '/company-logos/campion-education.webp',
+  mcav: '/company-logos/monash-connected-autonomous-vehicle.webp',
+  nandos: '/company-logos/nandos-australia-new-zealand.webp',
 }
 
 type CareerTimelineProps = {
@@ -36,40 +37,50 @@ export default function CareerTimeline({ expandedId, onExpandedChange }: CareerT
             const detailsId = `${instanceId}-${entry.id}-roles`
             const latestRole = entry.roles[0]
             const logo = companyLogos[entry.id]
+            const isExpandable = entry.status !== 'incoming'
+            const summary = (
+              <>
+                <span className="career-timeline__logo-tile" aria-hidden="true">
+                  {logo ? (
+                    <img src={logo} alt="" loading="lazy" decoding="async" draggable={false} />
+                  ) : (
+                    <span className="career-timeline__logo-fallback">{entry.initials}</span>
+                  )}
+                </span>
+                <span className="career-timeline__summary">
+                  <span className="career-timeline__organisation">{entry.organisation}</span>
+                  <span className="career-timeline__preview">{latestRole.title}</span>
+                  <span className="career-timeline__meta">
+                    {entry.status === 'incoming' ? (
+                      <span className="career-timeline__status">Incoming</span>
+                    ) : (
+                      <span>{entry.organisationPeriod}</span>
+                    )}
+                    {entry.arrangement && <span>{entry.arrangement}</span>}
+                    {entry.location && <span>{entry.location}</span>}
+                  </span>
+                </span>
+              </>
+            )
 
             return (
               <li className={`career-timeline__entry${isExpanded ? ' is-expanded' : ''}`} key={entry.id}>
                 <span className="career-timeline__node" aria-hidden="true" />
-                <button
-                  className="career-timeline__toggle"
-                  type="button"
-                  aria-expanded={isExpanded}
-                  aria-controls={detailsId}
-                  onClick={() => onExpandedChange(isExpanded ? null : entry.id)}
-                >
-                  <span className="career-timeline__logo-tile" aria-hidden="true">
-                    {logo ? (
-                      <img src={logo} alt="" loading="lazy" decoding="async" draggable={false} />
-                    ) : (
-                      <span className="career-timeline__logo-fallback">{entry.initials}</span>
-                    )}
-                  </span>
-                  <span className="career-timeline__summary">
-                    <span className="career-timeline__organisation">{entry.organisation}</span>
-                    <span className="career-timeline__preview">{latestRole.title}</span>
-                    <span className="career-timeline__meta">
-                      {entry.status === 'incoming' ? (
-                        <span className="career-timeline__status">Incoming</span>
-                      ) : (
-                        <span>{entry.organisationPeriod}</span>
-                      )}
-                      {entry.arrangement && <span>{entry.arrangement}</span>}
-                      {entry.location && <span>{entry.location}</span>}
-                    </span>
-                  </span>
-                  <span className="career-timeline__toggle-icon" aria-hidden="true">{isExpanded ? '−' : '+'}</span>
-                </button>
-                <div
+                {isExpandable ? (
+                  <button
+                    className="career-timeline__toggle"
+                    type="button"
+                    aria-expanded={isExpanded}
+                    aria-controls={detailsId}
+                    onClick={() => onExpandedChange(isExpanded ? null : entry.id)}
+                  >
+                    {summary}
+                    <span className="career-timeline__toggle-icon" aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+                  </button>
+                ) : (
+                  <div className="career-timeline__toggle career-timeline__static">{summary}</div>
+                )}
+                {isExpandable && <div
                   className="career-timeline__reveal"
                   id={detailsId}
                   aria-hidden={!isExpanded}
@@ -94,7 +105,7 @@ export default function CareerTimeline({ expandedId, onExpandedChange }: CareerT
                       ))}
                     </div>
                   </div>
-                </div>
+                </div>}
               </li>
             )
           })}

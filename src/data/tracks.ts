@@ -16,7 +16,7 @@ export const homeTrack: SiteTrack = {
   title: 'Highs 2 Lows',
   artist: 'Nujabes',
   src: homeAudio,
-  artwork: '/nujabes-album-cover.jpg',
+  artwork: '/nujabes-album-cover.webp',
 }
 
 export const projectsTrack: SiteTrack = {
@@ -24,7 +24,7 @@ export const projectsTrack: SiteTrack = {
   title: 'Roses',
   artist: 'Kanye West',
   src: rosesAudio,
-  artwork: '/late-registration-cover.jpg',
+  artwork: '/late-registration-cover.webp',
 }
 
 export const aboutTrack: SiteTrack = {
@@ -32,7 +32,7 @@ export const aboutTrack: SiteTrack = {
   title: 'Bodies',
   artist: 'Dominic Fike',
   src: bodiesAudio,
-  artwork: '/bodies-cover.jpeg',
+  artwork: '/bodies-cover.webp',
 }
 
 export const tracksById: Record<TrackId, SiteTrack> = {

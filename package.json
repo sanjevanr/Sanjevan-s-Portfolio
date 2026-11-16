@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "optimize:project-images": "node scripts/optimize-project-images.mjs"
+    "optimize:media": "node scripts/optimize-website-media.mjs",
+    "optimize:project-images": "npm run optimize:media"
   },
   "dependencies": {
     "@tailwindcss/vite": "latest",

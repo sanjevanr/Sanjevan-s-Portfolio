@@ -16,7 +16,7 @@ export type ShapeMode = 'desktop' | 'mobile'
 export const ROUTE_SHAPES: Record<string, { seed: number }> = {
   '/': { seed: 7 },
   '/projects': { seed: 19 },
-  '/photography': { seed: 31 },
+  '/media': { seed: 31 },
   '/about': { seed: 43 },
   '/contact': { seed: 59 },
 }

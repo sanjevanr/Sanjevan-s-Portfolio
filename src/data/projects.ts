@@ -16,7 +16,8 @@ export interface PortfolioProject {
 }
 
 export type ProjectMedia =
-  | { type: 'image' | 'video'; src: string; alt?: string; title?: string; description?: string; width?: number; height?: number; srcSet?: string; sizes?: string }
+  | { type: 'image'; src: string; alt?: string; title?: string; description?: string; width?: number; height?: number; srcSet?: string; sizes?: string }
+  | { type: 'video'; src: string; fallbackSrc?: string; alt?: string; title?: string; description?: string }
   | { type: 'website'; src: string; url: string; title: string; alt: string; description?: string; width: number; height: number; srcSet?: string; sizes?: string }
   | { type: 'youtube'; videoId: string; title: string; description?: string }
 
@@ -54,11 +55,18 @@ const responsiveImages: Record<string, { width: number; height: number; srcSet: 
 
 function publicMedia(projectTitle: string, dir: string, files: string[]): ProjectMedia[] {
   return files.map((file) => {
+    const isVideo = videoExtensions.test(file)
     const title = titleFromFilename(file, dir)
     const src = `/${dir}/${file}`
     const optimized = responsiveImages[src]
+    if (isVideo) {
+      return {
+        type: 'video', src, fallbackSrc: `/${dir}/${file}`, title,
+        alt: `${projectTitle} ${title.toLowerCase()}`,
+      }
+    }
     return {
-      type: videoExtensions.test(file) ? 'video' : 'image', src, title,
+      type: 'image', src, title,
       alt: `${projectTitle} ${title.toLowerCase()}`,
       ...(optimized ?? {}),
     }

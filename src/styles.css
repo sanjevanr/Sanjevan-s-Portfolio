@@ -74,21 +74,6 @@
   --about-timeline-width: 700px;
   --about-timeline-height: 700px;
 
-  /* ABOUT PAGE — TABLET COLLAGE POSITIONS
-     Pixel offsets are on the smaller tablet canvas; other positions
-     use centre percentages on that same canvas. */
-  --about-tablet-player-left: 135px;
-  --about-tablet-player-top: 180px;
-  --about-tablet-player-width: var(--music-window-width);
-  --about-tablet-player-height: 360px;
-  --about-tablet-headshot-left: 25%;
-  --about-tablet-headshot-top: 58%;
-  --about-tablet-headshot-width: 200px;
-  --about-tablet-timeline-left: 70%;
-  --about-tablet-timeline-top: 53%;
-  --about-tablet-timeline-width: 435px;
-  --about-tablet-timeline-height: 550px;
-
   /* ============================================================
      ABOUT PAGE — SCRAPBOOK DESKTOP CONTROLS
      ============================================================ */
@@ -101,65 +86,31 @@
 
   /* PHOTO 1 */
   --about-photo-1-left: 0px;
-  --about-photo-1-top: 0px;
-  --about-photo-1-width: 185px;
+  --about-photo-1-top: -20px;
+  --about-photo-1-width: 300px;
   --about-photo-1-rotation: -5deg;
   --about-photo-1-z: 1;
 
   /* PHOTO 2 */
-  --about-photo-2-left: 60px;
+  --about-photo-2-left: 250px;
   --about-photo-2-top: 150px;
-  --about-photo-2-width: 154px;
+  --about-photo-2-width: 200px;
   --about-photo-2-rotation: 4deg;
   --about-photo-2-z: 2;
 
   /* PHOTO 3 */
   --about-photo-3-left: 7px;
   --about-photo-3-top: 300px;
-  --about-photo-3-width: 178px;
+  --about-photo-3-width: 245px;
   --about-photo-3-rotation: -2deg;
   --about-photo-3-z: 3;
 
   /* PHOTO 4 */
-  --about-photo-4-left: 82px;
+  --about-photo-4-left: 150px;
   --about-photo-4-top: 425px;
-  --about-photo-4-width: 154px;
+  --about-photo-4-width: 200px;
   --about-photo-4-rotation: 3deg;
   --about-photo-4-z: 4;
-
-  /* ABOUT PAGE — TABLET SCRAPBOOK CONTROLS */
-  --about-tablet-scrapbook-left: 77%;
-  --about-tablet-scrapbook-top: 0%;
-  --about-tablet-scrapbook-width: 176px;
-  --about-tablet-scrapbook-height: 112px;
-
-  /* PHOTO 1 */
-  --about-tablet-photo-1-left: 0px;
-  --about-tablet-photo-1-top: 0px;
-  --about-tablet-photo-1-width: 96px;
-  --about-tablet-photo-1-rotation: -5deg;
-  --about-tablet-photo-1-z: 1;
-
-  /* PHOTO 2 */
-  --about-tablet-photo-2-left: 77px;
-  --about-tablet-photo-2-top: 31px;
-  --about-tablet-photo-2-width: 96px;
-  --about-tablet-photo-2-rotation: 4deg;
-  --about-tablet-photo-2-z: 2;
-
-  /* PHOTO 3 */
-  --about-tablet-photo-3-left: 3px;
-  --about-tablet-photo-3-top: 35px;
-  --about-tablet-photo-3-width: 96px;
-  --about-tablet-photo-3-rotation: -2deg;
-  --about-tablet-photo-3-z: 3;
-
-  /* PHOTO 4 */
-  --about-tablet-photo-4-left: 78px;
-  --about-tablet-photo-4-top: 3px;
-  --about-tablet-photo-4-width: 96px;
-  --about-tablet-photo-4-rotation: 3deg;
-  --about-tablet-photo-4-z: 4;
 
   /* ============================================================
      DESKTOP PROJECTS
@@ -4491,9 +4442,14 @@ body {
   transition: color .16s ease, text-shadow .16s ease;
 }
 
-.career-timeline__toggle:hover .career-timeline__organisation,
+.career-timeline__toggle:not(.career-timeline__static):hover .career-timeline__organisation,
 .career-timeline__entry.is-expanded .career-timeline__organisation {
   text-shadow: 0 0 10px rgb(200 237 255 / .42);
+}
+
+.career-timeline__static {
+  grid-template-columns: 48px minmax(0, 1fr);
+  cursor: default;
 }
 
 .career-timeline__toggle:focus-visible {
@@ -4559,12 +4515,13 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 2px 5px;
-  border: 1px solid rgb(230 245 255 / .55);
-  background: rgb(15 64 126 / .24);
-  color: #fff;
+  border: 1px solid rgb(170 255 192 / .72);
+  background: linear-gradient(180deg, rgb(38 133 76 / .94), rgb(18 91 52 / .96));
+  color: #effff3;
   font-size: 9px;
   line-height: 1.2;
   letter-spacing: .04em;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 1px 2px rgb(0 32 20 / .35);
 }
 
 .career-timeline__toggle-icon {
@@ -4721,80 +4678,17 @@ body {
   object-position: var(--photo-position, center);
 }
 
-.about-collage--tablet .about-player-window {
-  top: var(--about-tablet-player-top);
-  left: var(--about-tablet-player-left);
-  width: var(--about-tablet-player-width);
-  height: var(--about-tablet-player-height);
-}
-
-.about-collage--tablet .about-headshot-wrap {
-  top: var(--about-tablet-headshot-top);
-  left: var(--about-tablet-headshot-left);
-  width: var(--about-tablet-headshot-width);
-}
-
-.about-collage--tablet > section.about-career-window {
-  top: var(--about-tablet-timeline-top);
-  left: var(--about-tablet-timeline-left);
-  width: var(--about-tablet-timeline-width);
-  height: var(--about-tablet-timeline-height);
-}
-
-.about-collage--tablet .about-scrapbook {
-  top: var(--about-tablet-scrapbook-top);
-  left: var(--about-tablet-scrapbook-left);
-  width: var(--about-tablet-scrapbook-width);
-  height: var(--about-tablet-scrapbook-height);
-}
-
-.about-collage--tablet .about-scrapbook__note { padding: 5px; }
-
-.about-collage--tablet .about-scrapbook__note--one {
-  --note-x: var(--about-tablet-photo-1-left);
-  --note-y: var(--about-tablet-photo-1-top);
-  --note-width: var(--about-tablet-photo-1-width);
-  --note-rotation: var(--about-tablet-photo-1-rotation);
-  z-index: var(--about-tablet-photo-1-z);
-}
-
-.about-collage--tablet .about-scrapbook__note--two {
-  --note-x: var(--about-tablet-photo-2-left);
-  --note-y: var(--about-tablet-photo-2-top);
-  --note-width: var(--about-tablet-photo-2-width);
-  --note-rotation: var(--about-tablet-photo-2-rotation);
-  z-index: var(--about-tablet-photo-2-z);
-}
-
-.about-collage--tablet .about-scrapbook__note--three {
-  --note-x: var(--about-tablet-photo-3-left);
-  --note-y: var(--about-tablet-photo-3-top);
-  --note-width: var(--about-tablet-photo-3-width);
-  --note-rotation: var(--about-tablet-photo-3-rotation);
-  z-index: var(--about-tablet-photo-3-z);
-}
-
-.about-collage--tablet .about-scrapbook__note--four {
-  --note-x: var(--about-tablet-photo-4-left);
-  --note-y: var(--about-tablet-photo-4-top);
-  --note-width: var(--about-tablet-photo-4-width);
-  --note-rotation: var(--about-tablet-photo-4-rotation);
-  z-index: var(--about-tablet-photo-4-z);
-}
-
-.about-collage--tablet .about-scrapbook__photo { --photo-ratio: 4 / 3; }
-
-.about-collage--tablet .career-timeline__organisation { font-size: 16px; }
-.about-collage--tablet .career-timeline__preview { font-size: 12px; }
-.about-collage--tablet .career-timeline__meta { font-size: 9px; }
-.about-collage--tablet .career-timeline__description { font-size: 12px; }
-
-@media (max-width: 760px) and (max-height: 999px), (max-width: 599px) {
+@media (max-width: 760px) and (max-height: 999px), (max-width: 599px), (max-width: 900px) and (max-height: 500px) {
   .site--about,
   .site--about .site-content {
     height: auto;
     min-height: 100dvh;
     overflow: visible;
+  }
+
+  .site--about .site-header {
+    position: fixed;
+    top: 0;
   }
 
   .page-shell--about-phone {
@@ -4805,7 +4699,8 @@ body {
     height: auto;
     min-height: 0;
     margin: 0;
-    padding: 24px 16px 32px;
+    /* The fixed header's measured height includes its safe-area padding. */
+    padding: calc(var(--site-header-height, 96px) + 28px) 16px 32px;
     overflow: visible;
   }
 
@@ -4871,6 +4766,69 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .career-timeline__reveal,
   .career-timeline__toggle { transition-duration: .01ms; }
+}
+
+@media (max-width: 900px) and (max-height: 500px) {
+  .site--about .site-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: calc(6px + env(safe-area-inset-top)) 12px 4px;
+    background: color-mix(in srgb, var(--canvas-bg) 58%, transparent);
+    backdrop-filter: blur(8px);
+  }
+
+  .site--about .site-header__brand {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .site--about .site-header .wordmark {
+    display: block;
+    width: auto;
+    min-width: max-content;
+    flex: 0 0 auto;
+    font-size: clamp(16px, 3vw, 22px);
+    line-height: 1.2;
+  }
+
+  .site--about .site-header .site-utilities {
+    position: static;
+    inset: auto;
+    gap: 6px;
+    transform: none;
+  }
+
+  .site--about .site-header .site-nav {
+    position: static;
+    inset: auto;
+    width: 100%;
+    max-width: none;
+    flex-wrap: nowrap;
+    gap: clamp(4px, 1vw, 9px);
+    margin: 0;
+    transform: none;
+  }
+
+  .site--about .site-header .site-nav a {
+    flex: 0 1 auto;
+    padding: 4px 0;
+    font-size: clamp(11px, 2vw, 14px);
+    white-space: nowrap;
+  }
+
+  .site--about .site-footer {
+    position: relative;
+    inset: auto;
+    width: min(calc(100% - 32px), 520px);
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 12px 0 calc(16px + env(safe-area-inset-bottom));
+    transform: none;
+  }
 }
 
 /* ============================================================

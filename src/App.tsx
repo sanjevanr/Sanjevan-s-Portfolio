@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { NavLink, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
 import EyeOfHorusPanel from './components/EyeOfHorusPanel'
 import HorizontalWorkspace from './components/HorizontalWorkspace'
@@ -16,6 +16,7 @@ import ResumeShortcut from './components/projects/ResumeShortcut'
 import YouTubePreview from './components/YouTubePreview'
 import ContactPage from './components/ContactPage'
 import AboutPage from './components/AboutPage'
+import MediaPage from './components/media/MediaPage'
 
 type Theme = 'light' | 'dark'
 type ThemePreference = 'system' | 'light' | 'dark'
@@ -63,7 +64,7 @@ function useTheme() {
 const navigation = [
   ['home', '/'],
   ['projects', '/projects'],
-  ['photography', '/photography'],
+  ['media', '/media'],
   ['about', '/about'],
   ['contact', '/contact'],
 ] as const
@@ -455,7 +456,8 @@ function App() {
       <Routes>
         <Route path="/" element={null} />
         <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/photography" element={<ComingSoonPage />} />
+        <Route path="/media" element={<MediaPage />} />
+        <Route path="/photography" element={<Navigate to="/media" replace />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="*" element={<ComingSoonPage />} />

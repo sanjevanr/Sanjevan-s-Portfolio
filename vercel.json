@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/photography",
+      "destination": "/media",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/media",
+      "destination": "/index.html"
+    }
+  ]
+}

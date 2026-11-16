@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
+import { forwardRef, useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject, type VideoHTMLAttributes } from 'react'
 import { createPortal } from 'react-dom'
 import { projectMediaCaption, projectMediaPlaceholder, type PortfolioProject, type ProjectMedia } from '../../data/projects'
 import RetroScrollbar from '../RetroScrollbar'
@@ -75,6 +75,19 @@ const youTubeThumbnails = (videoId: string) => [
   `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
   `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
 ]
+
+type LocalVideo = Extract<ProjectMedia, { type: 'video' }>
+
+const ProjectVideo = forwardRef<HTMLVideoElement, { item: LocalVideo } & Omit<VideoHTMLAttributes<HTMLVideoElement>, 'src'>>(function ProjectVideo({ item, ...props }, ref) {
+  const sources = [item.src, item.fallbackSrc].filter((source): source is string => Boolean(source))
+  return (
+    <video {...props} ref={ref}>
+      {sources.map((src) => (
+        <source key={src} src={src} type={/\.webm$/i.test(src) ? 'video/webm' : 'video/mp4'} />
+      ))}
+    </video>
+  )
+})
 
 function YouTubeThumbnail({ videoId }: { videoId: string }) {
   const [attempt, setAttempt] = useState(0)
@@ -213,7 +226,7 @@ function MediaViewer({
             <div className={`media-viewer__media media-viewer__media--${item.type}`}>
               {item.type === 'image' && <img key={item.src} src={item.src} srcSet={item.srcSet} sizes={item.sizes} width={item.width} height={item.height} loading="lazy" alt={item.alt ?? label} draggable={false} />}
               {item.type === 'website' && <a className="project-media__website-preview" href={item.url} target="_blank" rel="noopener noreferrer" aria-label="Visit MUAS Website (opens in a new tab)"><img src={item.src} srcSet={item.srcSet} sizes={item.sizes} width={item.width} height={item.height} alt={item.alt} draggable={false} /><span className="project-media__website-link" aria-hidden="true">↗</span></a>}
-              {item.type === 'video' && <video key={item.src} src={item.src} controls playsInline preload="metadata" aria-label={item.alt ?? label} />}
+              {item.type === 'video' && <ProjectVideo key={item.src} item={item} controls playsInline preload="metadata" aria-label={item.alt ?? label} />}
               {item.type === 'youtube' && <YouTubeSlide key={item.videoId} item={item} playing={playingKey === item.videoId} onPlay={() => setPlayingKey(item.videoId)} />}
             </div>
             <figcaption>
@@ -231,7 +244,7 @@ function MediaViewer({
 
 function MediaThumbnail({ item }: { item: ProjectMedia }) {
   if (item.type === 'youtube') return <YouTubeThumbnail videoId={item.videoId} />
-  if (item.type === 'video') return <video src={item.src} muted playsInline preload="metadata" tabIndex={-1} aria-hidden="true" />
+  if (item.type === 'video') return <ProjectVideo item={item} muted playsInline preload="metadata" tabIndex={-1} aria-hidden="true" />
   return <img src={item.src} srcSet={item.type === 'image' ? item.srcSet : undefined} sizes={item.type === 'image' ? item.sizes : undefined} width={item.type === 'image' ? item.width : undefined} height={item.type === 'image' ? item.height : undefined} loading="lazy" alt="" draggable={false} />
 }
 
@@ -305,7 +318,7 @@ function Media({
           <div className={`project-media__current project-media__current--${current.type}${current.type === 'image' ? '' : ' project-media__current--player'}`}>
             {current.type === 'image' && <img key={current.src} src={current.src} srcSet={current.srcSet} sizes={current.sizes} width={current.width} height={current.height} fetchPriority="high" alt={current.alt ?? label} draggable={false} onClick={openViewer} />}
             {current.type === 'website' && <a className="project-media__website-preview" href={current.url} target="_blank" rel="noopener noreferrer" aria-label="Visit MUAS Website (opens in a new tab)"><img src={current.src} srcSet={current.srcSet} sizes={current.sizes} width={current.width} height={current.height} fetchPriority="high" alt={current.alt} draggable={false} /><span className="project-media__website-link" aria-hidden="true">↗</span></a>}
-            {current.type === 'video' && <video key={current.src} ref={inlineVideoRef} src={current.src} controls playsInline preload="metadata" aria-label={current.alt ?? label} />}
+            {current.type === 'video' && <ProjectVideo key={current.src} item={current} ref={inlineVideoRef} controls playsInline preload="metadata" aria-label={current.alt ?? label} />}
             {current.type === 'youtube' && <YouTubeSlide key={current.videoId} item={current} playing={playingKey === current.videoId} onPlay={() => setPlayingKey(current.videoId)} />}
             <span className="project-media__frame-caption">{label}</span>
             <ExpandButton buttonRef={expandButtonRef} onClick={openViewer} />
