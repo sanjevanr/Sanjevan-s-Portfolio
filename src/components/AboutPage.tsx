@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { IntroPanel } from './IntroPanel'
 import { mobileHomeQuery, tabletHomeQuery, useMediaQuery } from './HomeAudio'
 import RetroWindow from './RetroWindow'
+import PhotoPanel from './PhotoPanel'
 import SpotifyPlayer from './SpotifyPlayer'
 
 const canvasWidth = 1100
@@ -32,36 +32,22 @@ export default function AboutPage() {
   return (
     <main className={`page-shell page-shell--about${isPhone ? ' page-shell--about-phone' : ''}`}>
       {isPhone ? (
-        <div className="about-mobile-content">
-          <RetroWindow
-            title="About.exe"
-            accessibleLabel="About page content"
-            className="retro-window--intro about-content-window"
-            showTitle
-            singleContentMount
-            disableCloseControl
-            expandedCloseWithRedButton
-          >
-            <IntroPanel showMoreLink={false} />
-          </RetroWindow>
-        </div>
+        <PhotoPanel
+          src="/about-headshot.jpg"
+          alt="Portrait of Sanjevan Rajasegar"
+          className="photo-frame--about-headshot"
+        />
       ) : (
         <div ref={stageRef} className="about-stage">
           <div
             className={`about-collage${isTablet ? ' about-collage--tablet' : ''}`}
             style={{ transform: `translate(-50%, -50%) scale(${scale})` }}
           >
-            <RetroWindow
-              title="About.exe"
-              accessibleLabel="About page content"
-              className="retro-window--intro about-content-window"
-              showTitle
-              singleContentMount
-              disableCloseControl
-              expandedCloseWithRedButton
-            >
-              <IntroPanel showMoreLink={false} />
-            </RetroWindow>
+            <PhotoPanel
+              src="/about-headshot.jpg"
+              alt="Portrait of Sanjevan Rajasegar"
+              className="photo-frame--about-headshot"
+            />
 
             <RetroWindow
               title="Now playing"

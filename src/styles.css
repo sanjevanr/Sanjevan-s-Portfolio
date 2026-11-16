@@ -4155,18 +4155,30 @@ body {
   pointer-events: none;
 }
 
-.about-collage > section.about-content-window,
+.about-collage > .photo-frame--about-headshot,
 .about-collage > section.about-player-window {
   position: absolute;
   z-index: 4;
   pointer-events: auto;
 }
 
-.about-collage > section.about-content-window {
+.photo-frame--about-headshot {
+  width: 420px;
+  aspect-ratio: 1;
+  padding: 8px;
+  box-shadow:
+    inset 1px 1px 0 #fff,
+    inset -2px -2px 0 #7c858c,
+    0 8px 18px rgb(0 0 0 / .3);
+}
+
+.photo-frame--about-headshot .photo-frame__inner {
+  min-height: 0;
+}
+
+.about-collage > .photo-frame--about-headshot {
   top: 43%;
   left: 25%;
-  width: 520px;
-  max-height: 560px;
   transform: translate(-50%, -50%);
 }
 
@@ -4187,18 +4199,14 @@ body {
   min-height: 0;
 }
 
-.about-mobile-content {
-  display: none;
-}
-
 @media (min-width: 761px) and (max-width: 1199px) and (min-height: 740px),
        (min-width: 600px) and (max-width: 760px) and (min-height: 1000px),
        (min-width: 1200px) and (max-width: 1230px) and (min-height: 800px),
        (min-width: 1231px) and (max-width: 1440px) and (min-height: 901px) {
-  .about-collage > section.about-content-window {
+  .about-collage > .photo-frame--about-headshot {
     top: 42%;
     left: 22%;
-    width: 460px;
+    width: 390px;
   }
 
   .about-collage--tablet > section.about-player-window {
@@ -4223,20 +4231,18 @@ body {
 
   .about-stage { display: none; }
 
-  .about-mobile-content {
+  .page-shell--about-phone > .photo-frame--about-headshot {
     display: block;
-    width: min(100%, 560px);
+    position: relative;
+    z-index: 1;
+    width: min(100%, 420px);
     margin: 0 auto;
     pointer-events: auto;
+    transform: none;
   }
 
-  .about-mobile-content > section.about-content-window {
-    width: 100%;
-    max-height: none;
-  }
-
-  .about-mobile-content .retro-window__body {
-    overflow: visible;
+  .page-shell--about-phone > .photo-frame--about-headshot .photo-frame__inner {
+    aspect-ratio: 1;
   }
 }
 
