@@ -146,7 +146,7 @@ function MediaFinder() {
           <button className={place === 'video' ? 'is-current' : ''} type="button" onClick={() => goTo('video')}><FinderIcon type="video" />Video</button>
         </aside>
 
-        <div ref={canvasRef} className="finder-canvas" tabIndex={0} aria-label={`${placeTitle(place)} contents`} onKeyDown={handleCanvasKeyDown}>
+        <div ref={canvasRef} className={`finder-canvas${place.startsWith('video-item:') ? ' finder-canvas--video-preview' : ''}`} tabIndex={0} aria-label={`${placeTitle(place)} contents`} onKeyDown={handleCanvasKeyDown}>
           {currentItem ? (
             'preview' in currentItem ? (
               <div className="finder-preview finder-preview--photo">
@@ -154,14 +154,24 @@ function MediaFinder() {
                 <a href={currentItem.googleDriveUrl} target="_blank" rel="noopener noreferrer"><FinderIcon type="drive" />Open in Google Drive</a>
               </div>
             ) : (
-              <div className="finder-preview finder-preview--video">
-                <h2 className="finder-video-title">{currentItem.title}</h2>
+              <div className="finder-video-preview">
+                <section className="finder-video-copy" aria-label="Video description and production details">
+                  <h2 className="finder-video-title">{currentItem.title}</h2>
+                  {currentItem.description && <p className="finder-video-description">{currentItem.description}</p>}
+                  {(currentItem.camera || currentItem.editing || currentItem.colourGrading || currentItem.editingAndColourGrading || currentItem.song) && <hr className="finder-video-separator" />}
+                  <dl className="finder-video-details">
+                    {currentItem.camera && <div><dt>Camera</dt><dd>{currentItem.camera}</dd></div>}
+                    {currentItem.editing && <div><dt>Editing</dt><dd>{currentItem.editing}</dd></div>}
+                    {currentItem.colourGrading && <div><dt>Colour grading</dt><dd>{currentItem.colourGrading}</dd></div>}
+                    {currentItem.editingAndColourGrading && <div><dt>Editing &amp; colour grading</dt><dd>{currentItem.editingAndColourGrading}</dd></div>}
+                    {currentItem.song && <div><dt>Song</dt><dd>{currentItem.song}</dd></div>}
+                  </dl>
+                </section>
                 <a className="finder-video-thumbnail" href={currentItem.youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${currentItem.title} on YouTube (opens in a new tab)`}>
                   {!missingPreview ? <img src={currentItem.thumbnail} alt={`${currentItem.title} YouTube thumbnail`} onError={() => setMissingPreview(true)} /> : <div className="finder-video-fallback"><FinderIcon type="video" file /><span>Video preview unavailable</span></div>}
                   {!missingPreview && <span className="finder-video-play" aria-hidden="true"><svg viewBox="0 0 68 48" focusable="false"><path d="M66.52 7.1a8 8 0 0 0-5.64-5.66C55.9 0 34 0 34 0S12.1 0 7.12 1.44A8 8 0 0 0 1.48 7.1C0 12.1 0 24 0 24s0 11.9 1.48 16.9a8 8 0 0 0 5.64 5.66C12.1 48 34 48 34 48s21.9 0 26.88-1.44a8 8 0 0 0 5.64-5.66C68 35.9 68 24 68 24s0-11.9-1.48-16.9Z" fill="currentColor" /><path d="m27 34.5 18-10.5-18-10.5v21Z" fill="#fff" /></svg></span>}
                   {currentItem.duration && <span className="finder-video-duration">{currentItem.duration}</span>}
                 </a>
-                <a className="finder-video-watch" href={currentItem.youtubeUrl} target="_blank" rel="noopener noreferrer"><FinderIcon type="youtube" />Watch on YouTube <span aria-hidden="true">↗</span></a>
               </div>
             )
           ) : entries.length ? (

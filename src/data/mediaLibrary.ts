@@ -13,6 +13,12 @@ export type FinderVideo = {
   snapshotViews?: number
   /** Supplied relative-age snapshot only. */
   snapshotAge?: string
+  description?: string
+  camera?: string
+  editing?: string
+  colourGrading?: string
+  editingAndColourGrading?: string
+  song?: string
   thumbnail: string
   youtubeUrl: string
 }
@@ -23,6 +29,10 @@ export const videoUploads: FinderVideo[] = [
   {
     id: 'daikoku-pa',
     title: '大黒PA (daikoku PA)',
+    description: 'ZOOOOOOOOM',
+    camera: 'anko camcorder',
+    editing: 'Final Cut Pro X',
+    song: 'rottweiler — esdeekid',
     snapshotViews: 23,
     snapshotAge: '7 mo ago',
     thumbnail: 'https://i.ytimg.com/vi/3bSQDVXawGk/hqdefault.jpg',
@@ -31,6 +41,11 @@ export const videoUploads: FinderVideo[] = [
   {
     id: 'biovortex',
     title: '6:16 @ biovortex',
+    description: 'a reflection on creating art which makes you feel every detail',
+    camera: 'Fujifilm X-T30 II',
+    editing: 'Final Cut Pro X',
+    colourGrading: 'DaVinci Resolve',
+    song: 'the legend of ashitaka — joe hisaishi',
     duration: '1:01',
     snapshotViews: 57,
     snapshotAge: '7 mo ago',
@@ -40,6 +55,11 @@ export const videoUploads: FinderVideo[] = [
   {
     id: 'kaiyukan-aquarium',
     title: 'kaiyukan aquarium',
+    description: 'saw a whale shark for the first time in my life :)',
+    camera: 'Fujifilm X-T30 II',
+    editing: 'Final Cut Pro X',
+    colourGrading: 'DaVinci Resolve',
+    song: 'moonlight on the river — mac de marco',
     duration: '0:45',
     snapshotViews: 24,
     snapshotAge: '7 mo ago',
@@ -49,6 +69,11 @@ export const videoUploads: FinderVideo[] = [
   {
     id: 'drive-me-to-the-snow',
     title: 'drive ME 2 the snow¡',
+    description: 'dedicated to amar, sandavi and sahana',
+    camera: 'Fujifilm X-T30 II',
+    editing: 'Final Cut Pro X',
+    colourGrading: 'DaVinci Resolve',
+    song: 'drive ME crazy! — lil yachty',
     duration: '1:34',
     snapshotViews: 178,
     snapshotAge: '1 yr ago',
@@ -58,6 +83,9 @@ export const videoUploads: FinderVideo[] = [
   {
     id: 'island-life',
     title: "island life (seychelles '06 - '09)",
+    camera: 'Sony Cyber-shot',
+    editingAndColourGrading: 'Final Cut Pro X',
+    song: 'on one in october — mixed by V!KK',
     duration: '0:34',
     snapshotViews: 149,
     snapshotAge: '1 yr ago',
@@ -67,6 +95,10 @@ export const videoUploads: FinderVideo[] = [
   {
     id: 'climbing-kosciuszko',
     title: 'climbing kosciuszko',
+    description: 'climbing the tallest mountain in australia (2,228m)',
+    camera: 'Fujifilm X-T30 II',
+    editingAndColourGrading: 'Final Cut Pro X',
+    song: 'ghost town — kanye west',
     duration: '1:05',
     snapshotViews: 144,
     snapshotAge: '1 yr ago',
@@ -76,6 +108,9 @@ export const videoUploads: FinderVideo[] = [
   {
     id: 'india-through-my-eyes',
     title: 'india through my eyes',
+    camera: 'iPhone 12',
+    editing: 'CapCut',
+    song: 'nights — frank ocean',
     duration: '1:08',
     snapshotViews: 74,
     snapshotAge: '1 yr ago',
