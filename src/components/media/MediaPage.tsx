@@ -1,31 +1,34 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
-import { photoPortfolios, videoUploads, type FinderPhotoPortfolio, type FinderVideo } from '../../data/mediaLibrary'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { createPortal } from 'react-dom'
+import { photoPortfolios, videoUploads, type PhotoPortfolio, type FinderVideo } from '../../data/mediaLibrary'
 import { mobileHomeQuery, tabletHomeQuery, useMediaQuery } from '../HomeAudio'
 import RetroWindow from '../RetroWindow'
 import SpotifyPlayer from '../SpotifyPlayer'
 
-type Place = 'media' | 'type' | 'photo' | 'video' | `portfolio:${string}` | `video-item:${string}`
+type Place = 'media' | 'type' | 'photo' | 'video' | 'portfolios' | 'capsules' | `video-item:${string}`
 type Entry =
-  | { kind: 'folder'; id: 'type' | 'photo' | 'video'; name: string }
-  | { kind: 'portfolio'; item: FinderPhotoPortfolio }
+  | { kind: 'folder'; id: 'type' | 'photo' | 'video' | 'portfolios' | 'capsules'; name: string }
+  | { kind: 'portfolio'; item: PhotoPortfolio }
   | { kind: 'video'; item: FinderVideo }
 
-const placeName: Record<'media' | 'type' | 'photo' | 'video', string> = {
-  media: 'Media', type: 'Type', photo: 'Photo', video: 'Video',
+const placeName: Record<'media' | 'type' | 'photo' | 'video' | 'portfolios' | 'capsules', string> = {
+  media: 'Media', type: 'Type', photo: 'Photo', video: 'Video', portfolios: 'Portfolios', capsules: 'Capsules',
 }
-const placeParent: Partial<Record<Place, Place>> = { type: 'media', photo: 'type', video: 'type' }
+const placeParent: Partial<Record<Place, Place>> = { type: 'media', photo: 'type', video: 'type', portfolios: 'photo', capsules: 'photo' }
+
+const PortfolioReader = lazy(() => import('./PortfolioReader'))
 
 function placeTitle(place: Place) {
-  if (place.startsWith('portfolio:')) return photoPortfolios.find((item) => item.id === place.slice(10))?.name ?? 'Photo Preview'
   if (place.startsWith('video-item:')) return videoUploads.find((item) => item.id === place.slice(11))?.title ?? 'Video Preview'
   return placeName[place as keyof typeof placeName]
 }
 
 function pathFor(place: Place): Place[] {
-  if (place.startsWith('portfolio:')) return ['media', 'type', 'photo', place]
   if (place.startsWith('video-item:')) return ['media', 'type', 'video', place]
   if (place === 'media') return ['media']
   if (place === 'type') return ['media', 'type']
+  if (place === 'portfolios' || place === 'capsules') return ['media', 'type', 'photo', place]
+  if (place === 'photo' || place === 'video') return ['media', 'type', place]
   return ['media', 'type', place]
 }
 
@@ -40,7 +43,7 @@ function FinderIcon({ type, file = false }: { type: 'computer' | 'folder' | 'pho
   return <span className="finder-link-icon finder-link-icon--youtube" aria-hidden="true">▶</span>
 }
 
-function MediaFinder({ onVideoPreviewChange, preferWideThumbnail }: { onVideoPreviewChange: (isPreview: boolean) => void; preferWideThumbnail: boolean }) {
+function MediaFinder({ onVideoPreviewChange, onPortfolioOpen, preferWideThumbnail }: { onVideoPreviewChange: (isPreview: boolean) => void; onPortfolioOpen: (portfolio: PhotoPortfolio) => void; preferWideThumbnail: boolean }) {
   const [place, setPlace] = useState<Place>('type')
   const [history, setHistory] = useState<Place[]>(['type'])
   const [historyIndex, setHistoryIndex] = useState(0)
@@ -79,25 +82,28 @@ function MediaFinder({ onVideoPreviewChange, preferWideThumbnail }: { onVideoPre
       { kind: 'folder', id: 'photo', name: 'Photo' },
       { kind: 'folder', id: 'video', name: 'Video' },
     ]
-    if (place === 'photo') return photoPortfolios.map((item) => ({ kind: 'portfolio', item }))
+    if (place === 'photo') return [
+      { kind: 'folder', id: 'portfolios', name: 'Portfolios' },
+      { kind: 'folder', id: 'capsules', name: 'Capsules' },
+    ]
+    if (place === 'portfolios') return photoPortfolios.map((item) => ({ kind: 'portfolio', item }))
     if (place === 'video') return videoUploads.map((item) => ({ kind: 'video', item }))
     return []
   }, [place])
-  const totalItems = place.startsWith('portfolio:') || place.startsWith('video-item:') ? 1 : entries.length
+  const totalItems = place.startsWith('video-item:') ? 1 : entries.length
   const goUp = () => {
-    const parent = placeParent[place]
+    const parent = place.startsWith('video-item:') ? 'video' : placeParent[place]
     if (parent) goTo(parent)
   }
   const openEntry = (entry: Entry) => {
     if (entry.kind === 'folder') goTo(entry.id)
-    else if (entry.kind === 'portfolio') goTo(`portfolio:${entry.item.id}`)
+    else if (entry.kind === 'portfolio') {
+      setSelected(entry.item.id)
+      onPortfolioOpen(entry.item)
+    }
     else goTo(`video-item:${entry.item.id}`)
   }
-  const currentItem = place.startsWith('portfolio:')
-    ? photoPortfolios.find((item) => item.id === place.slice(10))
-    : place.startsWith('video-item:')
-      ? videoUploads.find((item) => item.id === place.slice(11))
-      : undefined
+  const currentItem = place.startsWith('video-item:') ? videoUploads.find((item) => item.id === place.slice(11)) : undefined
 
   const handleCanvasKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Backspace' || event.key === 'ArrowLeft') {
@@ -122,9 +128,8 @@ function MediaFinder({ onVideoPreviewChange, preferWideThumbnail }: { onVideoPre
     setSelected(nextId)
     optionRefs.current[nextIndex]?.focus()
   }
-  const handleItemPointerDown = (event: PointerEvent<HTMLElement>, entry: Entry) => {
+  const handleItemPointerDown = (event: PointerEvent<HTMLElement>) => {
     touchOpensRef.current = event.pointerType === 'touch'
-    if (touchOpensRef.current) openEntry(entry)
   }
 
   return (
@@ -153,13 +158,7 @@ function MediaFinder({ onVideoPreviewChange, preferWideThumbnail }: { onVideoPre
         </aside>
 
         <div ref={canvasRef} className={`finder-canvas${place.startsWith('video-item:') ? ' finder-canvas--video-preview' : ''}`} tabIndex={0} aria-label={`${placeTitle(place)} contents`} onKeyDown={handleCanvasKeyDown}>
-          {currentItem ? (
-            'preview' in currentItem ? (
-              <div className="finder-preview finder-preview--photo">
-                {!missingPreview ? <img src={currentItem.preview} alt={`${currentItem.name} portfolio preview`} onError={() => setMissingPreview(true)} /> : <div className="finder-preview-placeholder"><FinderIcon type="photo" /><span>Preview unavailable</span></div>}
-                <a href={currentItem.googleDriveUrl} target="_blank" rel="noopener noreferrer"><FinderIcon type="drive" />Open in Google Drive</a>
-              </div>
-            ) : (
+        {currentItem ? (
               <div className="finder-video-preview">
                 <section className="finder-video-copy" aria-label="Video description and production details">
                   <h2 className="finder-video-title">{currentItem.title}</h2>
@@ -182,7 +181,6 @@ function MediaFinder({ onVideoPreviewChange, preferWideThumbnail }: { onVideoPre
                   {currentItem.duration && <span className="finder-video-duration">{currentItem.duration}</span>}
                 </a>
               </div>
-            )
           ) : entries.length ? (
             <div className="finder-items" role="listbox" aria-label="Files and folders">
               {entries.map((entry) => {
@@ -193,26 +191,44 @@ function MediaFinder({ onVideoPreviewChange, preferWideThumbnail }: { onVideoPre
                   <button
                     ref={(node) => { optionRefs.current[entries.indexOf(entry)] = node }}
                     key={id}
-                    className={`finder-item${selected === id ? ' is-selected' : ''}`}
+                    className={`finder-item${entry.kind === 'portfolio' ? ' finder-item--portfolio' : ''}${selected === id ? ' is-selected' : ''}`}
                     type="button"
                     role="option"
                     aria-selected={selected === id}
                     tabIndex={selected === id || (selected === null && entries.indexOf(entry) === 0) ? 0 : -1}
                     onFocus={() => setSelected(id)}
-                    onPointerDown={(event) => handleItemPointerDown(event, entry)}
-                    onClick={(event) => {
-                      if (event.detail > 1 && !touchOpensRef.current) openEntry(entry)
+                    onPointerDown={handleItemPointerDown}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        openEntry(entry)
+                      }
+                    }}
+                    onDoubleClick={() => openEntry(entry)}
+                    onClick={() => {
+                      if (touchOpensRef.current) openEntry(entry)
                       else setSelected(id)
+                      touchOpensRef.current = false
                     }}
                   >
-                    <FinderIcon type={icon} file={entry.kind === 'video'} />
+                    {entry.kind === 'portfolio' ? (
+                      <span className="finder-book" aria-hidden="true">
+                        <img src={entry.item.coverUrl} alt="" loading="lazy" />
+                        <i className="finder-book__spine" />
+                        <i className="finder-book__pages" />
+                      </span>
+                    ) : <FinderIcon type={icon} file={entry.kind === 'video'} />}
                     <span className="finder-item-name">{name}</span>
                   </button>
                 )
               })}
             </div>
           ) : (
-            <div className="finder-empty"><FinderIcon type={place === 'photo' ? 'photo' : 'video'} /><strong>No {place === 'photo' ? 'photo portfolios' : 'video uploads'} yet</strong></div>
+            <div className={`finder-empty${place === 'capsules' ? ' finder-empty--capsules' : ''}`}>
+              <FinderIcon type={place === 'capsules' || place === 'photo' ? 'photo' : 'video'} />
+              <strong>{place === 'capsules' ? 'This folder is empty' : place === 'portfolios' ? 'No portfolios available' : 'No video uploads yet'}</strong>
+              {place === 'capsules' && <span>Future photo collections will appear here.</span>}
+            </div>
           )}
         </div>
       </div>
@@ -226,12 +242,19 @@ export default function MediaPage() {
   const isPhone = useMediaQuery(mobileHomeQuery)
   const isTablet = useMediaQuery(tabletHomeQuery)
   const [isVideoPreview, setIsVideoPreview] = useState(false)
+  const [activePortfolio, setActivePortfolio] = useState<PhotoPortfolio | null>(null)
+  useEffect(() => {
+    if (!activePortfolio) return
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [activePortfolio])
   return (
     <main className={`page-shell page-shell--media${isPhone ? ' page-shell--media-phone' : ''}`}>
       <div className="media-stage">
         <div className={`media-collage${isTablet ? ' media-collage--tablet' : ''}`}>
           <RetroWindow title="Finder" accessibleLabel="Media Finder" showTitle className={`media-finder-window${isVideoPreview ? ' media-finder-window--video-preview' : ''}`} expandedCloseAndRestore>
-            <MediaFinder onVideoPreviewChange={setIsVideoPreview} preferWideThumbnail={isTablet} />
+            <MediaFinder onVideoPreviewChange={setIsVideoPreview} onPortfolioOpen={setActivePortfolio} preferWideThumbnail={isTablet} />
           </RetroWindow>
           {!isPhone && (
             <div className="media-dock">
@@ -242,6 +265,11 @@ export default function MediaPage() {
           )}
         </div>
       </div>
+      {activePortfolio && (
+        <Suspense fallback={createPortal(<div className="ibooks-reader__loading" role="status">Opening {activePortfolio.name}…</div>, document.body)}>
+          <PortfolioReader portfolio={activePortfolio} onClose={() => setActivePortfolio(null)} />
+        </Suspense>
+      )}
     </main>
   )
 }

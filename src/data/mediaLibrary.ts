@@ -1,8 +1,10 @@
-export type FinderPhotoPortfolio = {
+export type PhotoPortfolio = {
   id: string
   name: string
-  preview: string
-  googleDriveUrl: string
+  pdfUrl: string
+  coverUrl: string
+  downloadFilename: string
+  description: string
 }
 
 export type FinderVideo = {
@@ -23,8 +25,24 @@ export type FinderVideo = {
   youtubeUrl: string
 }
 
-// Add real portfolio and upload records here when their public URLs are available.
-export const photoPortfolios: FinderPhotoPortfolio[] = []
+export const photoPortfolios: PhotoPortfolio[] = [
+  {
+    id: 'selected-works',
+    name: 'Selected Works',
+    pdfUrl: '/portfolios/selected-works.pdf',
+    coverUrl: '/portfolios/selected-works-cover.webp',
+    downloadFilename: 'Sanjevan-Rajasegar-Selected-Works.pdf',
+    description: 'A photography collection featuring Mt Kosciuszko, Roadtripping With Friends and Sacred Spaces.',
+  },
+  {
+    id: 'the-japanese-everyman',
+    name: 'THE JAPANESE EVERYMAN',
+    pdfUrl: '/portfolios/the-japanese-everyman.pdf',
+    coverUrl: '/portfolios/the-japanese-everyman-cover.webp',
+    downloadFilename: 'Sanjevan-Rajasegar-The-Japanese-Everyman.pdf',
+    description: 'A solo photographic journey through Japan, observing ordinary people, places, interactions and daily life.',
+  },
+]
 export const videoUploads: FinderVideo[] = [
   {
     id: 'daikoku-pa',

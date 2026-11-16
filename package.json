@@ -16,6 +16,7 @@
     "@tailwindcss/vite": "latest",
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
+    "pdfjs-dist": "^6.5.438",
     "react": "latest",
     "react-dom": "latest",
     "react-router-dom": "latest",
