@@ -166,12 +166,12 @@
   --projects-mobile-window-height: calc(100dvh - var(--site-header-height, 96px) - var(--site-footer-height, 56px) - 28px);
 
   /* MEDIA PAGE — DESKTOP POSITION AND SIZE CONTROLS */
-  --media-window-left: 0px;
-  --media-window-top: 0px;
+  --media-window-left: 200px;
+  --media-window-top: -20px;
   --media-window-width: 1080px;
-  --media-window-height: 510px;
-  --media-player-left: 0px;
-  --media-player-top: 0px;
+  --media-window-height: 650px;
+  --media-player-left: -1100px;
+  --media-player-top: 50px;
   --media-player-width: var(--music-window-width);
   --media-player-height: var(--music-window-height);
 
@@ -182,7 +182,7 @@
   --media-tablet-window-top: 0px;
   --media-tablet-player-width: var(--media-player-width);
   --media-tablet-player-height: var(--media-player-height);
-  --media-tablet-player-left: -300px;
+  --media-tablet-player-left: -925px;
   --media-tablet-player-top: -150px;
 
   /* HOMEPAGE MOBILE PHOTO
