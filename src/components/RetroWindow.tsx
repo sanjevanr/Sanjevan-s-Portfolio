@@ -13,6 +13,7 @@ type RetroWindowProps = {
   singleContentMount?: boolean
   disableCloseControl?: boolean
   expandedCloseWithRedButton?: boolean
+  expandedCloseAndRestore?: boolean
   controlsDisabled?: boolean
 }
 
@@ -27,6 +28,7 @@ export default function RetroWindow({
   singleContentMount = false,
   disableCloseControl = false,
   expandedCloseWithRedButton = false,
+  expandedCloseAndRestore = false,
   controlsDisabled = false,
 }: RetroWindowProps) {
   const {
@@ -87,10 +89,10 @@ export default function RetroWindow({
             <WindowControls
               title={title}
               expanded
-              showMaximise={!expandedCloseWithRedButton}
+              showMaximise={!expandedCloseWithRedButton || expandedCloseAndRestore}
               onMaximise={closeDialog}
-              onClose={expandedCloseWithRedButton ? closeDialog : undefined}
-              closeLabel={expandedCloseWithRedButton ? `Close expanded ${title.replace(/\.exe$/i, '')} window` : undefined}
+              onClose={expandedCloseWithRedButton || expandedCloseAndRestore ? closeDialog : undefined}
+              closeLabel={expandedCloseWithRedButton || expandedCloseAndRestore ? `Close expanded ${title.replace(/\.exe$/i, '')} window` : undefined}
             />
             {showTitle && <h2 className="retro-window__title">{title}</h2>}
           </header>

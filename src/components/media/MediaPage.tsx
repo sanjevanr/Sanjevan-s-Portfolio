@@ -142,8 +142,6 @@ function MediaFinder() {
           <button className={place === 'type' ? 'is-current' : ''} type="button" onClick={() => goTo('type')}><FinderIcon type="computer" />Type</button>
           <button className={place === 'photo' ? 'is-current' : ''} type="button" onClick={() => goTo('photo')}><FinderIcon type="photo" />Photo</button>
           <button className={place === 'video' ? 'is-current' : ''} type="button" onClick={() => goTo('video')}><FinderIcon type="video" />Video</button>
-          <h3>Places</h3>
-          <button type="button" onClick={() => goTo('media')}><FinderIcon type="computer" />Media</button>
         </aside>
 
         <div ref={canvasRef} className="finder-canvas" tabIndex={0} aria-label={`${placeTitle(place)} contents`} onKeyDown={handleCanvasKeyDown}>
@@ -162,7 +160,7 @@ function MediaFinder() {
               )}
             </div>
           ) : entries.length ? (
-            <div className={`finder-items${place === 'type' || place === 'media' ? ' finder-items--folders' : ''}`} role="listbox" aria-label="Files and folders">
+            <div className="finder-items" role="listbox" aria-label="Files and folders">
               {entries.map((entry) => {
                 const id = entry.kind === 'folder' ? entry.id : entry.item.id
                 const name = entry.kind === 'folder' ? entry.name : entry.kind === 'portfolio' ? entry.item.name : entry.item.title
@@ -207,7 +205,7 @@ export default function MediaPage() {
     <main className={`page-shell page-shell--media${isPhone ? ' page-shell--media-phone' : ''}`}>
       <div className="media-stage">
         <div className={`media-collage${isTablet ? ' media-collage--tablet' : ''}`}>
-          <RetroWindow title="Finder" accessibleLabel="Media Finder" showTitle className="media-finder-window" expandedCloseWithRedButton>
+          <RetroWindow title="Finder" accessibleLabel="Media Finder" showTitle className="media-finder-window" expandedCloseAndRestore>
             <MediaFinder />
           </RetroWindow>
           {!isPhone && (
