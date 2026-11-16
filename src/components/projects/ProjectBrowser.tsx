@@ -37,20 +37,20 @@ function Overview({ project, compact }: { project: PortfolioProject; compact: bo
         <h2>{project.title}</h2>
         <p className="project-overview__meta">{project.technologies.join(' / ')}</p>
       </header>
-      <OverviewSection id={`${baseId}-about`} title="About the project">
+      <OverviewSection id={`${baseId}-about`} title={project.id === 'unilinq' ? 'Overview' : 'About the project'}>
         <p className="project-overview__summary">{project.summary}</p>
       </OverviewSection>
-      <OverviewSection id={`${baseId}-features`} title="Key Features & Implementation" variant="band">
-        <OverviewList items={project.highlights} />
-      </OverviewSection>
-      <OverviewSection id={`${baseId}-skills`} title="Skills Learned">
-        <OverviewList items={project.skillsLearned} />
-      </OverviewSection>
       {project.achievements && (
-        <OverviewSection id={`${baseId}-achievements`} title="Achievements" variant="highlight">
+        <OverviewSection id={`${baseId}-achievements`} title={project.id === 'unilinq' ? 'Recognition' : 'Achievements'} variant="highlight">
           <OverviewList items={project.achievements} />
         </OverviewSection>
       )}
+      <OverviewSection id={`${baseId}-features`} title="Key Features & Implementation" variant="band">
+        <OverviewList items={project.highlights} />
+      </OverviewSection>
+      <OverviewSection id={`${baseId}-skills`} title={project.id === 'unilinq' ? 'My contributions & learnings' : 'Skills Learned'}>
+        <OverviewList items={project.skillsLearned} />
+      </OverviewSection>
       <OverviewSection id={`${baseId}-links`} title="Links">
         <div className="project-browser__links">
           {project.githubUrl && (
@@ -210,7 +210,8 @@ function MediaViewer({
             onPointerCancel={() => { touchStart.current = null }}
           >
             <div className={`media-viewer__media media-viewer__media--${item.type}`}>
-              {item.type === 'image' && <img key={item.src} src={item.src} alt={item.alt ?? label} draggable={false} />}
+              {item.type === 'image' && <img key={item.src} src={item.src} srcSet={item.srcSet} sizes={item.sizes} width={item.width} height={item.height} loading="lazy" alt={item.alt ?? label} draggable={false} />}
+              {item.type === 'website' && <a className="project-media__website-preview" href={item.url} target="_blank" rel="noopener noreferrer" aria-label="Visit MUAS Website (opens in a new tab)"><img src={item.src} srcSet={item.srcSet} sizes={item.sizes} width={item.width} height={item.height} alt={item.alt} draggable={false} /><span className="project-media__website-link" aria-hidden="true">↗</span></a>}
               {item.type === 'video' && <video key={item.src} src={item.src} controls playsInline preload="metadata" aria-label={item.alt ?? label} />}
               {item.type === 'youtube' && <YouTubeSlide key={item.videoId} item={item} playing={playingKey === item.videoId} onPlay={() => setPlayingKey(item.videoId)} />}
             </div>
@@ -230,7 +231,7 @@ function MediaViewer({
 function MediaThumbnail({ item }: { item: ProjectMedia }) {
   if (item.type === 'youtube') return <YouTubeThumbnail videoId={item.videoId} />
   if (item.type === 'video') return <video src={item.src} muted playsInline preload="metadata" tabIndex={-1} aria-hidden="true" />
-  return <img src={item.src} alt="" draggable={false} />
+  return <img src={item.src} srcSet={item.type === 'image' ? item.srcSet : undefined} sizes={item.type === 'image' ? item.sizes : undefined} width={item.type === 'image' ? item.width : undefined} height={item.type === 'image' ? item.height : undefined} loading="lazy" alt="" draggable={false} />
 }
 
 function Media({
@@ -261,7 +262,7 @@ function Media({
     thumbnailRefs.current[index]?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }, [index])
 
-  if (media.length === 0) return <p className="project-browser__placeholder">{project.id === 'unilinq' ? 'MEDIA COMING SOON' : projectMediaPlaceholder}</p>
+  if (media.length === 0) return <p className="project-browser__placeholder">{projectMediaPlaceholder}</p>
 
   const select = (next: number) => {
     setPlayingKey(null)
@@ -301,7 +302,8 @@ function Media({
       >
         <div className="project-media__stage">
           <div className={`project-media__current project-media__current--${current.type}${current.type === 'image' ? '' : ' project-media__current--player'}`}>
-            {current.type === 'image' && <img key={current.src} src={current.src} alt={current.alt ?? label} draggable={false} onClick={openViewer} />}
+            {current.type === 'image' && <img key={current.src} src={current.src} srcSet={current.srcSet} sizes={current.sizes} width={current.width} height={current.height} fetchPriority="high" alt={current.alt ?? label} draggable={false} onClick={openViewer} />}
+            {current.type === 'website' && <a className="project-media__website-preview" href={current.url} target="_blank" rel="noopener noreferrer" aria-label="Visit MUAS Website (opens in a new tab)"><img src={current.src} srcSet={current.srcSet} sizes={current.sizes} width={current.width} height={current.height} fetchPriority="high" alt={current.alt} draggable={false} /><span className="project-media__website-link" aria-hidden="true">↗</span></a>}
             {current.type === 'video' && <video key={current.src} ref={inlineVideoRef} src={current.src} controls playsInline preload="metadata" aria-label={current.alt ?? label} />}
             {current.type === 'youtube' && <YouTubeSlide key={current.videoId} item={current} playing={playingKey === current.videoId} onPlay={() => setPlayingKey(current.videoId)} />}
             <span className="project-media__frame-caption">{label}</span>
@@ -476,6 +478,7 @@ export default function ProjectBrowser({ project, activeTab, onTabChange, compac
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [hasSwitched, setHasSwitched] = useState(false)
   const [mediaSelections, setMediaSelections] = useState<Record<string, number>>({})
+  const visibleTabs = project.id === 'fit3155-algorithms' ? tabs.filter((item) => item.id !== 'media') : tabs
 
   const selectTab = (id: ProjectBrowserTab, focusIndex?: number) => {
     if (id !== activeTab) {
@@ -486,23 +489,23 @@ export default function ProjectBrowser({ project, activeTab, onTabChange, compac
   }
 
   const onTabsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const index = tabs.findIndex((item) => item.id === activeTab)
+    const index = visibleTabs.findIndex((item) => item.id === activeTab)
     if (index < 0) return
     if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
       event.preventDefault()
       const direction = event.key === 'ArrowRight' ? 1 : -1
-      const nextIndex = (index + direction + tabs.length) % tabs.length
-      selectTab(tabs[nextIndex].id, nextIndex)
+      const nextIndex = (index + direction + visibleTabs.length) % visibleTabs.length
+      selectTab(visibleTabs[nextIndex].id, nextIndex)
       return
     }
     if (event.key === 'Home') {
       event.preventDefault()
-      selectTab(tabs[0].id, 0)
+      selectTab(visibleTabs[0].id, 0)
       return
     }
     if (event.key === 'End') {
       event.preventDefault()
-      selectTab(tabs[tabs.length - 1].id, tabs.length - 1)
+      selectTab(visibleTabs[visibleTabs.length - 1].id, visibleTabs.length - 1)
     }
   }
 
@@ -510,7 +513,7 @@ export default function ProjectBrowser({ project, activeTab, onTabChange, compac
     <section className="project-browser" aria-label="Project browser">
       <header className="project-browser__chrome">
         <div className="project-browser__tabs" role="tablist" aria-label="Project sections" onKeyDown={onTabsKeyDown}>
-          {tabs.map((item, index) => {
+          {visibleTabs.map((item, index) => {
             const selected = item.id === activeTab
             return (
               <button

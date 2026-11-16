@@ -4952,6 +4952,77 @@ body {
 
 .project-media__current--image img { background: transparent; }
 
+.project-media__current--website {
+  width: min(95%, 1000px);
+  height: auto;
+  max-height: 95%;
+  aspect-ratio: 16 / 9;
+  padding: 24px 5px 5px;
+  background: linear-gradient(
+    180deg,
+    #dce7ef 0 18px,
+    #8797a4 18px,
+    #e9f0f4 100%
+  );
+  box-shadow:
+    inset 0 1px 2px #fff,
+    0 5px 14px rgb(0 0 0 / .32);
+}
+
+.project-media__website-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #526675;
+  background: #101820;
+  cursor: pointer;
+}
+
+.project-media__website-preview::before {
+  position: absolute;
+  z-index: 1;
+  top: -19px;
+  left: 8px;
+  color: #27435b;
+  content: 'https://monashuas.org';
+  font: 10px/16px var(--mono);
+}
+
+.project-media__website-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+}
+
+.project-media__website-link {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  background: rgb(5 25 43 / .76);
+  color: #fff;
+  font: 700 18px/1 Arial, sans-serif;
+  box-shadow: 0 1px 5px rgb(0 0 0 / .4);
+}
+
+.project-media__current--website .project-media__expand { top: 3px; }
+
+.media-viewer__media--website {
+  width: min(960px, var(--viewer-media-max-w), var(--viewer-media-max-h) * 4096 / 1836);
+  aspect-ratio: 4096 / 1836;
+}
+
 .project-media__frame-caption {
   position: absolute;
   z-index: 2;
@@ -5533,7 +5604,7 @@ body {
   }
 
   .site--projects .project-browser__links {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 6px;
   }
 

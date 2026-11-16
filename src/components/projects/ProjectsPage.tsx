@@ -11,6 +11,10 @@ export default function ProjectsPage() {
   const [activeTab, setActiveTab] = useState<ProjectBrowserTab>('overview')
   const isPhone = useMediaQuery(mobileHomeQuery)
   const selected = projects.find((project) => project.id === selectedId) ?? projects[0]
+  const selectProject = (id: string) => {
+    setSelectedId(id)
+    if (id === 'fit3155-algorithms') setActiveTab('overview')
+  }
 
   return (
     <main className="page-shell page-shell--projects">
@@ -27,7 +31,7 @@ export default function ProjectsPage() {
             controlsDisabled={isPhone}
           >
             <div className="projects-workspace__layout">
-              <ProjectExplorer projects={projects} selectedId={selected.id} onSelect={setSelectedId} compact={isPhone} />
+              <ProjectExplorer projects={projects} selectedId={selected.id} onSelect={selectProject} compact={isPhone} />
               <ProjectBrowser project={selected} activeTab={activeTab} onTabChange={setActiveTab} compact={isPhone} />
             </div>
           </RetroWindow>
