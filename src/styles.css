@@ -126,8 +126,8 @@
   --projects-window-height: 650px;
 
   /* Desktop player, then scaled by --home-collage-scale. */
-  --projects-player-left: 50px;
-  --projects-player-top: 200px;
+  --projects-player-left: -1050px;
+  --projects-player-top: 95px;
   --projects-player-height: 360px;
 
   /* ============================================================
@@ -155,7 +155,7 @@
   --projects-tablet-player-width: var(--music-window-width);
   --projects-tablet-player-height: var(--music-window-height);
   --projects-tablet-player-left: 365px;
-  --projects-tablet-player-top: -150px;
+  --projects-tablet-player-top: -160px;
 
   /* ============================================================
      MOBILE PROJECTS
@@ -170,8 +170,8 @@
   --media-window-top: -20px;
   --media-window-width: 1080px;
   --media-window-height: 650px;
-  --media-player-left: -1100px;
-  --media-player-top: 50px;
+  --media-player-left: -25px;
+  --media-player-top: 160px;
   --media-player-width: var(--music-window-width);
   --media-player-height: var(--music-window-height);
 
