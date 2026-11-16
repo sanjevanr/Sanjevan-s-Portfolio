@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "optimize:media": "node scripts/optimize-website-media.mjs",
     "optimize:project-images": "npm run optimize:media"
   },
@@ -24,6 +25,7 @@
     "vite": "latest"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

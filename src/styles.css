@@ -127,7 +127,7 @@
 
   /* Desktop player, then scaled by --home-collage-scale. */
   --projects-player-left: -1050px;
-  --projects-player-top: 95px;
+  --projects-player-top: 140px;
   --projects-player-height: 360px;
 
   /* ============================================================
@@ -7283,4 +7283,120 @@ body {
   opacity: 1;
   pointer-events: auto;
   cursor: pointer;
+}
+
+/* ============================================================
+   DESKTOP APP WINDOWS — HEADER / NAVIGATION CLEARANCE
+   Applies only outside the site's tablet scaling breakpoints.
+   The measured header, nav and footer dimensions define the
+   usable page-shell region; each manual height remains the cap.
+   ============================================================ */
+
+@media (min-width: 1200px) and (max-width: 1230px) and (max-height: 799px),
+       (min-width: 1231px) and (max-width: 1440px) and (max-height: 900px),
+       (min-width: 1441px) {
+  .page-shell.page-shell--projects {
+    padding-top: calc(
+      var(--header-top-offset) +
+      env(safe-area-inset-top) +
+      var(--site-header-height, 90px) +
+      32px
+    );
+    padding-bottom: calc(
+      var(--site-nav-height, 48px) +
+      var(--site-footer-height, 40px) +
+      70px +
+      env(safe-area-inset-bottom)
+    );
+  }
+
+  .projects-collage > section.projects-workspace {
+    top: max(-4px, var(--projects-window-top));
+    height: min(
+      var(--projects-window-height),
+      max(0px, calc(100% - max(0px, var(--projects-window-top)) - 4px))
+    );
+    max-height: 100%;
+    min-height: 0;
+  }
+
+  .page-shell.page-shell--media {
+    padding-top: calc(
+      var(--header-top-offset) +
+      env(safe-area-inset-top) +
+      var(--site-header-height, 90px) +
+      32px
+    );
+    padding-bottom: calc(
+      var(--site-nav-height, 48px) +
+      var(--site-footer-height, 40px) +
+      70px +
+      env(safe-area-inset-bottom)
+    );
+  }
+
+  .media-finder-window {
+    top: max(-4px, var(--media-window-top));
+    height: min(
+      var(--media-window-height),
+      max(0px, calc(100% - max(0px, var(--media-window-top)) - 4px))
+    );
+    max-height: 100%;
+    min-height: 0;
+  }
+
+  .page-shell--contact {
+    padding-top: 28px;
+    padding-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .contact-collage {
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    justify-content: center;
+  }
+
+  .site--contact .contact-collage > section.contact-window {
+    max-height: calc(100% - var(--contact-icons-size) - 48px);
+    min-height: 0;
+  }
+
+  .contact-window > .retro-window__body {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 0%;
+    align-items: stretch;
+    overflow: auto;
+  }
+
+  .contact-panel {
+    --contact-space: 5px;
+    width: 100%;
+    flex: 0 0 auto;
+    gap: calc(var(--contact-space) * 2);
+    padding-block: 14px;
+  }
+
+  .contact-panel__title {
+    padding-bottom: calc(var(--contact-space) * 1.2);
+  }
+
+  .contact-form {
+    gap: calc(var(--contact-space) * 1.5);
+  }
+
+  .contact-form__field {
+    gap: calc(var(--contact-space) * .8);
+  }
+
+  .contact-form__actions {
+    margin-top: calc(var(--contact-space) * .8);
+  }
+
+  .contact-form__field textarea {
+    height: 84px;
+    min-height: 84px;
+  }
 }
