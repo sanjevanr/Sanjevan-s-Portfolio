@@ -130,10 +130,10 @@ test.describe('Media photography portfolios', () => {
     await expect(reader.getByRole('button', { name: 'Fit page' })).toBeHidden()
     await expect(reader.getByRole('button', { name: 'Fit width' })).toBeHidden()
     await expect(reader.getByRole('button', { name: 'Reset zoom' })).toBeVisible()
+    await expect(reader.locator('.ibooks-control--fullscreen')).toHaveCount(0)
     await reader.locator('.ibooks-toolbar__more > summary').click()
-    await expect(reader.locator('.ibooks-toolbar__menu button').first()).toBeVisible()
-    await expect(reader.locator('.ibooks-toolbar__menu button')).toHaveCount(1)
-    await expect(reader.locator('.ibooks-toolbar__menu .ibooks-control--menu-download')).toBeVisible()
+    await expect(reader.locator('.ibooks-toolbar__menu a')).toHaveCount(1)
+    await expect(reader.locator('.ibooks-toolbar__menu a[download]')).toBeVisible()
     const headerAlignment = await reader.locator('.ibooks-control--back').evaluate((back) => {
       const title = document.querySelector('.ibooks-toolbar__title')!.getBoundingClientRect()
       const backBounds = back.getBoundingClientRect()
@@ -196,6 +196,9 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 768
       } else {
         await expectPdfCanvasHasArtwork(page, 3)
         await expect(page.locator('.ibooks-page canvas[aria-label="Page 4"]')).toHaveCount(0)
+        await expect(page.locator('.ibooks-page-area')).toHaveClass(/ibooks-pages--spread/)
+        const spineOverlay = await page.locator('.ibooks-page-area').evaluate((area) => getComputedStyle(area, '::before').content)
+        expect(spineOverlay).toBe('none')
         await page.getByRole('button', { name: 'Next page' }).click()
         await expect(page.locator('.ibooks-page canvas[aria-label="Page 5"]')).toBeVisible()
       }
@@ -218,14 +221,22 @@ for (const viewport of [
       const reader = page.getByRole('dialog', { name: 'Reading Selected Works' })
       await expect(reader).toBeVisible()
       await expectPdfCanvasHasArtwork(page, 1)
-      const isTouchSized = viewport.width <= 1180
-      if (isTouchSized) {
+      const isTabletOrSmaller = viewport.width <= 1180
+      const isPhone = viewport.width <= 520
+      if (isTabletOrSmaller) {
         await expect(reader.getByRole('button', { name: 'Fit page' })).toBeHidden()
         await expect(reader.getByRole('button', { name: 'Fit width' })).toBeHidden()
-        await expect(reader.locator('.ibooks-toolbar__more > summary')).toBeVisible()
       } else {
         await expect(reader.getByRole('button', { name: 'Fit page' })).toBeVisible()
         await expect(reader.getByRole('button', { name: 'Fit width' })).toBeVisible()
+      }
+      await expect(reader.locator('.ibooks-control--fullscreen')).toHaveCount(0)
+      await expect(reader.locator('.ibooks-toolbar__controls a[download]')).toHaveCount(1)
+      if (isPhone) {
+        await expect(reader.locator('.ibooks-toolbar__more > summary')).toBeVisible()
+      } else {
+        await expect(reader.locator('.ibooks-toolbar__more')).toBeHidden()
+        await expect(reader.getByRole('link', { name: 'Download PDF' })).toBeVisible()
       }
       const layout = await page.evaluate(() => {
         const reader = document.querySelector('.ibooks-reader')!
@@ -238,6 +249,7 @@ for (const viewport of [
         return {
           pageOverflow: document.documentElement.scrollWidth > window.innerWidth,
           toolbarOverflow: bounds(reader).width < bounds(back).right || bounds(reader).width < bounds(title).right,
+          controlsOverflow: (document.querySelector('.ibooks-toolbar__controls') as HTMLElement).scrollWidth > (document.querySelector('.ibooks-toolbar__controls') as HTMLElement).clientWidth,
           titleCenterDifference: Math.abs((bounds(title).left + bounds(title).right) / 2 - (bounds(reader).left + bounds(reader).right) / 2),
           backSharesControlsRow: Math.abs((bounds(back).top + bounds(back).bottom) / 2 - (bounds(controls).top + bounds(controls).bottom) / 2),
           controlsBelowTitlebar: bounds(controls).top >= bounds(title).bottom - 1,
@@ -262,6 +274,7 @@ for (const viewport of [
       })
       expect(layout.pageOverflow).toBe(false)
       expect(layout.toolbarOverflow).toBe(false)
+      expect(layout.controlsOverflow).toBe(false)
       expect(layout.titleCenterDifference).toBeLessThan(1)
       expect(layout.backSharesControlsRow).toBeLessThan(1)
       expect(layout.controlsBelowTitlebar).toBe(true)

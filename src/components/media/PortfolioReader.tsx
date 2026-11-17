@@ -96,9 +96,9 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
   const [pageLoading, setPageLoading] = useState(true)
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 })
   const [isNarrow, setIsNarrow] = useState(() => window.matchMedia('(max-width: 820px)').matches)
+  const [isPhone, setIsPhone] = useState(() => window.matchMedia('(max-width: 520px)').matches)
   const [zoom, setZoom] = useState(1)
   const [zoomMode, setZoomMode] = useState<ZoomMode>('page')
-  const [isFullscreen, setIsFullscreen] = useState(false)
   const panRef = useRef<{ pointerId: number; x: number; y: number; left: number; top: number } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -163,9 +163,11 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
   }, [])
 
   useEffect(() => {
-    const syncFullscreen = () => setIsFullscreen(document.fullscreenElement === readerRef.current)
-    document.addEventListener('fullscreenchange', syncFullscreen)
-    return () => document.removeEventListener('fullscreenchange', syncFullscreen)
+    const query = window.matchMedia('(max-width: 520px)')
+    const update = () => setIsPhone(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
   }, [])
 
   useEffect(() => {
@@ -210,7 +212,7 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
   const visibleCount = visiblePages.length || 1
   const displayedStart = pageSet?.start ?? currentPage
   const pageEnd = Math.min(pageCount, displayedStart + visibleCount - 1)
-  const slotWidth = Math.max(160, (stageSize.width - (spread ? 76 : 52)) / (spread ? 2 : 1))
+  const slotWidth = Math.max(160, (stageSize.width - (spread ? 60 : 52)) / (spread ? 2 : 1))
   const slotHeight = Math.max(180, stageSize.height - 54)
 
   const goToPrevious = useCallback(() => {
@@ -243,7 +245,6 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
   }
 
   const handleClose = () => {
-    if (document.fullscreenElement) void document.exitFullscreen()
     onClose()
   }
 
@@ -306,26 +307,10 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
-  const handleFullscreen = async () => {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen()
-      return
-    }
-    if (readerRef.current?.requestFullscreen) {
-      try {
-        await readerRef.current.requestFullscreen()
-        return
-      } catch {
-        // The reader already fills the viewport, so keep using that fallback.
-      }
-    }
-    setIsFullscreen((value) => !value)
-  }
-
   return createPortal((
     <div
       ref={readerRef}
-      className={`ibooks-reader${isFullscreen ? ' ibooks-reader--fullscreen' : ''}`}
+      className="ibooks-reader"
       role="dialog"
       aria-modal="true"
       aria-label={`Reading ${portfolio.name}`}
@@ -345,26 +330,29 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
             </label>
             <button className="ibooks-control" type="button" onClick={goToNext} disabled={currentPage + visibleCount > pageCount} aria-label="Next page">›</button>
           </div>
-          <span className="ibooks-toolbar__divider" aria-hidden="true" />
+          {!isNarrow && <span className="ibooks-toolbar__divider" aria-hidden="true" />}
+          {!isNarrow && (
+            <div className="ibooks-toolbar__group ibooks-toolbar__group--fit">
+              <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('page'); setZoom(1) }}>Fit page</button>
+              <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('width'); setZoom(1) }}>Fit width</button>
+            </div>
+          )}
           <div className="ibooks-toolbar__group ibooks-toolbar__group--zoom">
             <button className="ibooks-control" type="button" onClick={() => adjustZoom(-.1)} aria-label="Zoom out" title="Zoom out" disabled={zoom <= .6}>−</button>
             <button className="ibooks-control" type="button" onClick={() => adjustZoom(.1)} aria-label="Zoom in" title="Zoom in" disabled={zoom >= 2.5}>+</button>
             <button className="ibooks-control ibooks-control--text ibooks-control--reset" type="button" onClick={() => { setZoomMode('page'); setZoom(1) }} aria-label="Reset zoom" title="Reset zoom"><span aria-hidden="true">↻</span><span className="ibooks-control__label">Reset</span></button>
           </div>
-          <div className="ibooks-toolbar__group ibooks-toolbar__group--fit">
-            <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('page'); setZoom(1) }}>Fit page</button>
-            <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('width'); setZoom(1) }}>Fit width</button>
-          </div>
           <div className="ibooks-toolbar__group ibooks-toolbar__group--actions">
-            <button className="ibooks-control ibooks-control--text ibooks-control--fullscreen" type="button" onClick={() => void handleFullscreen()} aria-pressed={isFullscreen}>{isFullscreen ? 'Exit full screen' : 'Full screen'}</button>
-            <details className="ibooks-toolbar__more">
-              <summary className="ibooks-control" aria-label="More reader controls" title="More reader controls">•••</summary>
-              <div className="ibooks-toolbar__menu">
-                <button className="ibooks-control ibooks-control--text" type="button" onClick={() => { void handleFullscreen(); const details = document.querySelector<HTMLDetailsElement>('.ibooks-toolbar__more'); if (details) details.open = false }}>{isFullscreen ? 'Exit full screen' : 'Full screen'}</button>
-                <a className="ibooks-control ibooks-control--text ibooks-control--menu-download" href={portfolio.pdfUrl} download={portfolio.downloadFilename} aria-label="Download PDF">Download PDF</a>
-              </div>
-            </details>
-            <a className="ibooks-control ibooks-control--download" href={portfolio.pdfUrl} download={portfolio.downloadFilename} aria-label="Download PDF" title="Download PDF"><span className="ibooks-control__download-label">Download PDF</span><span className="ibooks-control__download-icon" aria-hidden="true">↓</span></a>
+            {isPhone ? (
+              <details className="ibooks-toolbar__more">
+                <summary className="ibooks-control" aria-label="More reader controls" title="More reader controls">•••</summary>
+                <div className="ibooks-toolbar__menu">
+                  <a className="ibooks-control ibooks-control--text" href={portfolio.pdfUrl} download={portfolio.downloadFilename} aria-label="Download PDF">Download PDF</a>
+                </div>
+              </details>
+            ) : (
+              <a className="ibooks-control ibooks-control--download" href={portfolio.pdfUrl} download={portfolio.downloadFilename} aria-label="Download PDF" title="Download PDF">Download PDF</a>
+            )}
           </div>
         </div>
       </header>
