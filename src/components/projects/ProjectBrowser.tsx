@@ -320,11 +320,10 @@ function Media({
             {current.type === 'website' && <a className="project-media__website-preview" href={current.url} target="_blank" rel="noopener noreferrer" aria-label="Visit MUAS Website (opens in a new tab)"><img src={current.src} srcSet={current.srcSet} sizes={current.sizes} width={current.width} height={current.height} fetchPriority="high" alt={current.alt} draggable={false} /><span className="project-media__website-link" aria-hidden="true">↗</span></a>}
             {current.type === 'video' && <ProjectVideo key={current.src} item={current} ref={inlineVideoRef} controls playsInline preload="metadata" aria-label={current.alt ?? label} />}
             {current.type === 'youtube' && <YouTubeSlide key={current.videoId} item={current} playing={playingKey === current.videoId} onPlay={() => setPlayingKey(current.videoId)} />}
-            {current.type !== 'youtube' && <span className="project-media__frame-caption">{label}</span>}
+            <span className="project-media__frame-caption">{label}</span>
             <ExpandButton buttonRef={expandButtonRef} onClick={openViewer} />
           </div>
         </div>
-        {current.type === 'youtube' && <p className="project-media__caption project-media__caption--standalone">{label}</p>}
         <div className="project-media__meta">
           <div className="project-media__controls">
             <button type="button" className="project-media__arrow" onClick={() => select(index - 1)} aria-label="Previous media" disabled={media.length < 2}>‹</button>

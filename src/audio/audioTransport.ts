@@ -10,6 +10,7 @@ export interface MediaLike {
   play(): Promise<void>
   pause(): void
   load(): void
+  removeAttribute?(name: string): void
   addEventListener(type: string, listener: () => void): void
   removeEventListener(type: string, listener: () => void): void
 }
@@ -28,6 +29,7 @@ export class AudioTransport {
   private playPending = false
   private playAttempt = 0
   private wantsPlay = false
+  private disabled = false
   private destroyed = false
   private readonly media: MediaLike
   private readonly onReport: (report: TransportReport) => void
@@ -41,7 +43,7 @@ export class AudioTransport {
     this.listeners = [
       ['playing', () => {
         if (this.media.paused) return
-        if (!this.wantsPlay) {
+        if (this.disabled || !this.wantsPlay) {
           this.media.pause()
           return
         }
@@ -57,7 +59,7 @@ export class AudioTransport {
         this.report(this.operationId, 'paused')
       }],
       ['error', () => {
-        if (!this.media.error) return
+        if (this.disabled || !this.media.error) return
         this.playPending = false
         this.log?.('[audio] media error', { code: this.media.error.code })
         this.report(this.operationId, 'error')
@@ -71,11 +73,31 @@ export class AudioTransport {
     for (const [type, listener] of this.listeners) this.media.removeEventListener(type, listener)
   }
 
+  /** While disabled nothing can start playback, including in-flight play() calls. */
+  setEnabled(enabled: boolean, operationId: number) {
+    if (enabled === !this.disabled) return
+    this.disabled = !enabled
+    if (enabled) return
+    this.operationId = operationId
+    this.wantsPlay = false
+    this.playPending = false
+    this.playAttempt += 1
+    if (!this.media.paused) this.media.pause()
+    if (this.assignedSrc !== null) {
+      this.assignedSrc = null
+      this.media.removeAttribute?.('src')
+      this.media.load()
+    }
+    this.report(operationId, 'paused')
+  }
+
   activate(src: string | null, shouldPlay: boolean, operationId: number) {
     this.operationId = operationId
+    if (this.disabled) src = null
     this.wantsPlay = src !== null && shouldPlay
     if (src === null || !shouldPlay) {
       this.playPending = false
+      this.playAttempt += 1
       if (!this.media.paused) this.media.pause()
       if (src !== null) this.assign(src)
       this.report(operationId, 'paused')
@@ -90,6 +112,7 @@ export class AudioTransport {
   }
 
   playFromGesture(operationId: number) {
+    if (this.disabled) return
     this.operationId = operationId
     this.wantsPlay = true
     this.attemptPlay(operationId)
@@ -114,6 +137,7 @@ export class AudioTransport {
   }
 
   private attemptPlay(operationId: number) {
+    if (this.disabled) return
     const attemptId = ++this.playAttempt
     this.playPending = true
     this.report(operationId, 'loading')
@@ -132,7 +156,10 @@ export class AudioTransport {
     }
     attempt.then(
       () => {
-        if (attemptId !== this.playAttempt) return
+        if (attemptId !== this.playAttempt) {
+          if ((this.disabled || !this.wantsPlay) && !this.media.paused) this.media.pause()
+          return
+        }
         if (!this.wantsPlay && !this.media.paused) this.media.pause()
         if (operationId !== this.operationId) return
         this.playPending = false

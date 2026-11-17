@@ -68,6 +68,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
   const routeTrackId = trackIdForPath(pathname)
   const isPhone = useMediaQuery(mobileHomeQuery)
+  const isPhoneRef = useRef(window.matchMedia(mobileHomeQuery).matches)
   const [state, setState] = useState<AudioControllerState>(() => createInitialState(pathname, isPhone))
   const stateRef = useRef(state)
   const [duration, setDuration] = useState(0)
@@ -101,7 +102,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     }
 
     const shouldResume = coordinator.release(reason)
-    if (coordinator.isPaused || !activeWantsPlayback(stateRef.current)) return
+    if (isPhoneRef.current || coordinator.isPaused || !activeWantsPlayback(stateRef.current)) return
     if (!shouldResume) {
       setupAutoplayFallbackRef.current()
       return
@@ -130,7 +131,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const prepareAnalyser = useCallback(async (audio: HTMLAudioElement, fromGesture: boolean) => {
-    if (analyserRef.current || typeof window.AudioContext === 'undefined') return
+    if (isPhoneRef.current || analyserRef.current || typeof window.AudioContext === 'undefined') return
     try {
       let context = audioContextRef.current
       if (context?.state === 'closed') return
@@ -180,6 +181,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
       if (report.status === 'playing') clearAutoplayFallback()
     }
     const transport = new AudioTransport(audio, onReport, devLog)
+    transport.setEnabled(!isPhoneRef.current, stateRef.current.operationId)
     transportRef.current = transport
 
     const syncMetadata = () => {
@@ -187,7 +189,13 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
       setDuration(nextDuration)
       setCanSeek(nextDuration > 0 && audio.seekable.length > 0)
     }
-    const onPlay = () => { void prepareAnalyser(audio, false) }
+    const onPlay = () => {
+      if (isPhoneRef.current) {
+        audio.pause()
+        return
+      }
+      void prepareAnalyser(audio, false)
+    }
     audio.addEventListener('play', onPlay)
     audio.addEventListener('loadedmetadata', syncMetadata)
     audio.addEventListener('durationchange', syncMetadata)
@@ -218,25 +226,42 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     }
   }, [apply, clearAutoplayFallback, prepareAnalyser])
 
+  /* Pause synchronously on entering the phone breakpoint, before React
+     re-renders, so no queued play() can win the race. */
+  useEffect(() => {
+    const media = window.matchMedia(mobileHomeQuery)
+    const update = () => {
+      isPhoneRef.current = media.matches
+      if (!media.matches) return
+      clearAutoplayFallback()
+      transportRef.current?.setEnabled(false, stateRef.current.operationId)
+    }
+    update()
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [clearAutoplayFallback])
+
   useEffect(() => {
     const transport = transportRef.current
     if (!transport) return
+    isPhoneRef.current = isPhone
+    transport.setEnabled(!isPhone, stateRef.current.operationId)
     const next = apply({ type: 'routeChanged', trackId: permittedTrackId(routeTrackId, isPhone) })
     const trackId = next.activeTrackId
-    const shouldPlay = activeWantsPlayback(next) && !pauseCoordinatorRef.current.isPaused
+    const shouldPlay = !isPhone && activeWantsPlayback(next) && !pauseCoordinatorRef.current.isPaused
     clearAutoplayFallback()
     setupAutoplayFallbackRef.current = () => {
       const current = stateRef.current
-      if (autoplayFallbackCleanupRef.current || !activeWantsPlayback(current) || current.actualPlayback === 'playing' || pauseCoordinatorRef.current.isPaused) return
+      if (isPhoneRef.current || autoplayFallbackCleanupRef.current || !activeWantsPlayback(current) || current.actualPlayback === 'playing' || pauseCoordinatorRef.current.isPaused) return
       autoplayFallbackCleanupRef.current = installAutoplayFallback(document,
         (event) => {
           const target = event.target
           if (target instanceof Element && target.closest('.spotify-player__play')) return false
-          return activeWantsPlayback(stateRef.current) && stateRef.current.actualPlayback !== 'playing' && !pauseCoordinatorRef.current.isPaused
+          return !isPhoneRef.current && activeWantsPlayback(stateRef.current) && stateRef.current.actualPlayback !== 'playing' && !pauseCoordinatorRef.current.isPaused
         },
         () => {
           const latest = stateRef.current
-          if (!activeWantsPlayback(latest) || pauseCoordinatorRef.current.isPaused) return
+          if (isPhoneRef.current || !activeWantsPlayback(latest) || pauseCoordinatorRef.current.isPaused) return
           transportRef.current?.playFromGesture(latest.operationId)
           const audio = audioRef.current
           if (audio) void prepareAnalyser(audio, true)
@@ -259,6 +284,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
       transport.pause(apply({ type: 'userPause' }).operationId)
       return
     }
+    if (isPhoneRef.current) return
     const next = apply({ type: 'userPlay' })
     if (pauseCoordinatorRef.current.isPaused) {
       pauseCoordinatorRef.current.requestResumeOnRelease()

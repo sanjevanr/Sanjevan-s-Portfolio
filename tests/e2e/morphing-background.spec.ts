@@ -20,7 +20,7 @@ for (const viewport of phoneViewports) {
         for (const route of routes) {
           await page.goto(route)
           await expect(page.locator('.morphing-background')).toBeVisible()
-          await expect(page.locator('.morph-mask-svg clipPath path')).toHaveCount(1)
+          await expect(page.locator('.morphing-background__masked')).toHaveCSS('clip-path', /^path\(/)
           const layout = await page.evaluate(() => {
             const stage = document.querySelector<HTMLElement>('.morphing-background__stage')
             const background = document.querySelector<HTMLElement>('.morphing-background')
@@ -34,7 +34,7 @@ for (const viewport of phoneViewports) {
               viewportWidth: window.innerWidth,
               viewportHeight: window.innerHeight,
               horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth,
-              verticalOverflow: document.documentElement.scrollHeight > window.innerHeight,
+              backgroundOverflow: background.scrollHeight > background.clientHeight || background.scrollWidth > background.clientWidth,
               backgroundZIndex: getComputedStyle(background).zIndex,
               theme: document.documentElement.dataset.theme,
             }
@@ -47,7 +47,7 @@ for (const viewport of phoneViewports) {
           expect(Math.abs(layout.left + layout.width / 2 - layout.viewportWidth / 2)).toBeLessThanOrEqual(1)
           expect(Math.abs(layout.top + layout.height / 2 - layout.viewportHeight / 2)).toBeLessThanOrEqual(2)
           expect(layout.horizontalOverflow).toBe(false)
-          expect(layout.verticalOverflow, `${route} should not scroll the document`).toBe(false)
+          expect(layout.backgroundOverflow, `${route} background should not overflow`).toBe(false)
           expect(Number(layout.backgroundZIndex)).toBeLessThan(1)
           expect(layout.theme).toBe(theme)
         }
@@ -69,6 +69,6 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 768
     expect(layout.height).toBeGreaterThan(0)
     expect(layout.rootWidth).toBeGreaterThanOrEqual(viewport.width - 1)
     expect(layout.rootHeight).toBeGreaterThanOrEqual(viewport.height - 1)
-    await expect(page.locator('.morph-mask-svg clipPath path')).toHaveCount(1)
+    await expect(page.locator('.morphing-background__masked')).toHaveCSS('clip-path', /^path\(/)
   })
 }

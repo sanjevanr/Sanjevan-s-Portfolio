@@ -273,4 +273,47 @@ describe('AudioTransport with the reducer', () => {
     await flush()
     expect(state.actualPlayback).toBe('playing')
   })
+
+  it('a disabled transport never calls play and clears its source', async () => {
+    const media = new FakeMedia()
+    let state = createInitialState('/')
+    const transport = new AudioTransport(media, (report) => {
+      state = audioReducer(state, { type: 'transportReported', operationId: report.operationId, status: report.status })
+    })
+    transport.setEnabled(false, state.operationId)
+    transport.activate(sources.home, true, state.operationId)
+    transport.playFromGesture(state.operationId)
+    await flush()
+    expect(media.playCalls).toHaveLength(0)
+    expect(media.paused).toBe(true)
+    expect(media.src).toBe('')
+  })
+
+  it('a play() that resolves after disabling does not restart playback', async () => {
+    const media = new FakeMedia()
+    media.autoResolve = false
+    let state = createInitialState('/')
+    const transport = new AudioTransport(media, (report) => {
+      state = audioReducer(state, { type: 'transportReported', operationId: report.operationId, status: report.status })
+    })
+    transport.activate(sources.home, true, state.operationId)
+    const pending = media.plays[0]
+    media.plays.length = 0
+    transport.setEnabled(false, state.operationId)
+    media.src = sources.home
+    pending.resolve()
+    await flush()
+    expect(media.paused).toBe(true)
+    expect(state.actualPlayback).toBe('paused')
+  })
+
+  it('re-enabling allows playback again on desktop', async () => {
+    const media = new FakeMedia()
+    const transport = new AudioTransport(media, () => {})
+    transport.setEnabled(false, 0)
+    transport.setEnabled(true, 1)
+    transport.activate(sources.home, true, 1)
+    await flush()
+    expect(media.paused).toBe(false)
+  })
 })

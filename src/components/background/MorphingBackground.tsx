@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
   columnInSurface,
@@ -61,13 +61,17 @@ function AmbientBackground() {
   )
 }
 
+function clipPathValue(path: string) {
+  return `path('${path}')`
+}
+
 export default function MorphingBackground() {
   const { pathname } = useLocation()
   const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches)
-  const maskId = `morph-mask-${useId().replace(/:/g, '')}`
   const rootRef = useRef<HTMLDivElement>(null)
+  const stageRef = useRef<HTMLDivElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
-  const pathRef = useRef<SVGPathElement>(null)
+  const clipLayerRef = useRef<HTMLDivElement>(null)
   const renderedShapeRef = useRef<Shape>(makeShape(ROUTE_SHAPES['/'].seed))
   const shapeModeRef = useRef<ShapeMode>('desktop')
   const modeRef = useRef<ShapeMode>('desktop')
@@ -99,9 +103,24 @@ export default function MorphingBackground() {
     return () => mediaQuery.removeEventListener('change', updateViewportMode)
   }, [])
 
+  /* The clipped layer is laid out in shape units and scaled to the stage,
+     which shares the shape's aspect ratio, as the SVG viewBox did. */
   useLayoutEffect(() => {
-    const pathElement = pathRef.current
-    if (!pathElement) return
+    const stage = stageRef.current
+    if (!stage) return
+    const updateScale = () => {
+      const scale = stage.clientWidth / dimensions.width
+      if (scale > 0) stage.style.setProperty('--morph-scale', String(scale))
+    }
+    updateScale()
+    const observer = new ResizeObserver(updateScale)
+    observer.observe(stage)
+    return () => observer.disconnect()
+  }, [dimensions.width])
+
+  useLayoutEffect(() => {
+    const clipLayer = clipLayerRef.current
+    if (!clipLayer) return
 
     if (shapeModeRef.current !== mode) {
       const previousDimensions = shapeDimensions(shapeModeRef.current)
@@ -118,7 +137,7 @@ export default function MorphingBackground() {
     renderPathRef.current = () => {
       const nextPath = shapePath(renderedShapeRef.current, mode, liftsRef.current)
       if (lastPathRef.current === nextPath) return
-      pathElement.setAttribute('d', nextPath)
+      clipLayer.style.clipPath = clipPathValue(nextPath)
       lastPathRef.current = nextPath
     }
 
@@ -375,21 +394,18 @@ export default function MorphingBackground() {
 
   return (
     <div ref={rootRef} className={`morphing-background${visibleRef.current ? '' : ' morphing-background--paused'}`} aria-hidden="true">
-      <div className={`morphing-background__stage morphing-background__stage--${mode}`}>
-        <svg ref={svgRef} className="morph-mask-svg" viewBox={shapeViewBox(mode)} preserveAspectRatio="xMidYMid meet">
-          <defs>
-            {/* Clip the foreignObject directly: mobile WebKit can leak the
-                masked lime fallback rectangle as a fixed bar at the viewport edge. */}
-            <clipPath id={maskId} clipPathUnits="userSpaceOnUse">
-              <path ref={pathRef} d={shapePath(renderedShapeRef.current, mode, liftsRef.current)} />
-            </clipPath>
-          </defs>
-          <foreignObject x="0" y="0" width={dimensions.width} height={dimensions.height} clipPath={`url(#${maskId})`}>
-            <div className="morphing-background__masked">
-              <AmbientBackground />
-            </div>
-          </foreignObject>
-        </svg>
+      <div ref={stageRef} className={`morphing-background__stage morphing-background__stage--${mode}`}>
+        {/* Coordinate reference for hover hit-testing only; it draws nothing. */}
+        <svg ref={svgRef} className="morph-mask-svg" viewBox={shapeViewBox(mode)} preserveAspectRatio="xMidYMid meet" />
+        {/* Plain HTML clipped with CSS path(): WebKit neither scales nor clips
+            HTML inside an SVG foreignObject reliably. */}
+        <div
+          ref={clipLayerRef}
+          className="morphing-background__masked"
+          style={{ width: dimensions.width, height: dimensions.height, clipPath: clipPathValue(shapePath(renderedShapeRef.current, mode, liftsRef.current)) }}
+        >
+          <AmbientBackground />
+        </div>
       </div>
     </div>
   )
