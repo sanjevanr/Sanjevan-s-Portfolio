@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 test.describe('Contact form responses', () => {
   test('keeps form values and shows a friendly message for empty and malformed API responses', async ({ page }) => {

@@ -1,4 +1,5 @@
-import { expect, test, type Browser, type Page } from '@playwright/test'
+import { type Browser, type Page } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 type Sample = { x: number; y: number; inside: boolean }
 

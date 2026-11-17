@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react'
 import { useLocation } from 'react-router-dom'
 import { activeWantsPlayback, audioReducer, createInitialState, permittedTrackId, type ActualPlayback, type AudioAction, type AudioControllerState } from '../audio/audioState'
+import { entryGranted } from '../audio/entrySession'
 import { AudioTransport, type TransportReport } from '../audio/audioTransport'
 import { AudioPauseCoordinator, type AutomaticPauseReason } from '../audio/audioPauseCoordinator'
 import { installAutoplayFallback } from '../audio/autoplayFallback'
@@ -24,6 +25,7 @@ type HomeAudioContextValue = {
   analyser: AnalyserNode | null
   playbackError: boolean
   setAutomaticPause: (reason: AutomaticPauseReason, paused: boolean) => void
+  beginEntryPlayback: () => void
   togglePlayback: () => void
   seekTo: (time: number) => void
 }
@@ -69,6 +71,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   const routeTrackId = trackIdForPath(pathname)
   const isPhone = useMediaQuery(mobileHomeQuery)
   const isPhoneRef = useRef(window.matchMedia(mobileHomeQuery).matches)
+  const entryHeldRef = useRef(!isPhoneRef.current && !entryGranted())
   const [state, setState] = useState<AudioControllerState>(() => createInitialState(pathname, isPhone))
   const stateRef = useRef(state)
   const [duration, setDuration] = useState(0)
@@ -232,6 +235,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     const media = window.matchMedia(mobileHomeQuery)
     const update = () => {
       isPhoneRef.current = media.matches
+      if (!entryGranted()) entryHeldRef.current = !media.matches
       if (!media.matches) return
       clearAutoplayFallback()
       transportRef.current?.setEnabled(false, stateRef.current.operationId)
@@ -248,7 +252,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     transport.setEnabled(!isPhone, stateRef.current.operationId)
     const next = apply({ type: 'routeChanged', trackId: permittedTrackId(routeTrackId, isPhone) })
     const trackId = next.activeTrackId
-    const shouldPlay = !isPhone && activeWantsPlayback(next) && !pauseCoordinatorRef.current.isPaused
+    const shouldPlay = !isPhone && !entryHeldRef.current && activeWantsPlayback(next) && !pauseCoordinatorRef.current.isPaused
     clearAutoplayFallback()
     setupAutoplayFallbackRef.current = () => {
       const current = stateRef.current
@@ -273,6 +277,24 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     }
     transport.activate(trackId ? tracksById[trackId].src : null, shouldPlay, next.operationId)
   }, [apply, clearAutoplayFallback, isPhone, prepareAnalyser, routeTrackId])
+
+  const beginEntryPlayback = useCallback(() => {
+    if (isPhoneRef.current || !entryHeldRef.current) return
+    entryHeldRef.current = false
+    const transport = transportRef.current
+    const audio = audioRef.current
+    if (!transport || !audio || !stateRef.current.activeTrackId) return
+    if (pauseCoordinatorRef.current.isPaused) {
+      const next = apply({ type: 'userPlay' })
+      pauseCoordinatorRef.current.requestResumeOnRelease()
+      transport.pause(next.operationId)
+      return
+    }
+    const next = apply({ type: 'userPlay' })
+    transport.playFromGesture(next.operationId)
+    void prepareAnalyser(audio, true)
+    setupAutoplayFallbackRef.current()
+  }, [apply, prepareAnalyser])
 
   const togglePlayback = useCallback(() => {
     const transport = transportRef.current
@@ -320,9 +342,10 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     analyser,
     playbackError: actualPlayback === 'error',
     setAutomaticPause,
+    beginEntryPlayback,
     togglePlayback,
     seekTo,
-  }), [actualPlayback, analyser, canSeek, duration, seekTo, setAutomaticPause, state.activeTrackId, togglePlayback, track, wantsPlayback])
+  }), [actualPlayback, analyser, beginEntryPlayback, canSeek, duration, seekTo, setAutomaticPause, state.activeTrackId, togglePlayback, track, wantsPlayback])
 
   return (
     <HomeAudioContext.Provider value={value}>

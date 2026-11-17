@@ -14,12 +14,12 @@ export default defineConfig({
     {
       name: 'firefox',
       use: { browserName: 'firefox' },
-      testMatch: ['morph-cross-browser.spec.ts', 'mobile-layout.spec.ts'],
+      testMatch: ['morph-cross-browser.spec.ts', 'mobile-layout.spec.ts', 'entry-screen.spec.ts'],
     },
     {
       name: 'webkit',
       use: { browserName: 'webkit' },
-      testMatch: ['morph-cross-browser.spec.ts', 'mobile-layout.spec.ts', 'morphing-background.spec.ts'],
+      testMatch: ['morph-cross-browser.spec.ts', 'mobile-layout.spec.ts', 'morphing-background.spec.ts', 'entry-screen.spec.ts'],
     },
   ],
   webServer: {

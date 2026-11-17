@@ -8,7 +8,7 @@
   ],
   "rewrites": [
     {
-      "source": "/media",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

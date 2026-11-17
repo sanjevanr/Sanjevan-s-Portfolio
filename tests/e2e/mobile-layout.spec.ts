@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { type Page } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 const phoneViewports = [
   { width: 375, height: 667 },
@@ -67,7 +68,7 @@ for (const viewport of phoneViewports) {
       expect(layout.horizontalOverflow).toBe(false)
       await expect(page.locator('.site-footer p')).toHaveText([
         '© Sanjevan Rajasegar 2026',
-        'Website Developed by Sanjevan Rajasegar, Inspired by bicflame',
+        'Website Developed by Sanjevan Rajasegar, Inspired by after.band',
       ])
     })
 

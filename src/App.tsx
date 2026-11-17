@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { entryGranted } from './audio/entrySession'
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import MorphingBackground from './components/background/MorphingBackground'
 import EyeOfHorusPanel from './components/EyeOfHorusPanel'
@@ -6,6 +7,7 @@ import HorizontalWorkspace from './components/HorizontalWorkspace'
 import { IntroPanel } from './components/IntroPanel'
 import PhotoPanel from './components/PhotoPanel'
 import RetroWindow from './components/RetroWindow'
+import EntryScreen from './components/EntryScreen'
 import { HomeAudioProvider, mobileHomeQuery, tabletHomeQuery, useMediaQuery } from './components/HomeAudio'
 import SocialBrowser from './components/SocialBrowser'
 import SpotifyPlayer from './components/SpotifyPlayer'
@@ -411,7 +413,28 @@ function SiteFooter() {
 function App() {
   const { pathname } = useLocation()
   const { theme, toggleTheme } = useTheme()
+  const isPhone = useMediaQuery(mobileHomeQuery)
+  const [entryPhase, setEntryPhase] = useState<'boot' | 'fade' | 'done'>(() => (entryGranted() ? 'done' : 'boot'))
   const siteRef = useRef<HTMLDivElement>(null)
+  const entryHeld = !isPhone && entryPhase === 'boot'
+  const entryVisible = !isPhone && entryPhase !== 'done'
+  const finishEntry = useCallback(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setEntryPhase('done')
+      return
+    }
+    setEntryPhase('fade')
+  }, [])
+
+  useEffect(() => {
+    if (entryPhase !== 'fade') return
+    const timeout = window.setTimeout(() => setEntryPhase('done'), 460)
+    return () => window.clearTimeout(timeout)
+  }, [entryPhase])
+
+  useEffect(() => {
+    if (isPhone && entryPhase === 'fade') setEntryPhase('done')
+  }, [entryPhase, isPhone])
   useLayoutEffect(() => {
     const site = siteRef.current
     const header = site?.querySelector<HTMLElement>('.site-header')
@@ -444,7 +467,7 @@ function App() {
 
   return (
     <HomeAudioProvider>
-    <div className={`site${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/media' ? ' site--media' : ''}${pathname === '/contact' ? ' site--contact' : ''}${pathname === '/about' ? ' site--about' : ''}`} ref={siteRef}>
+    <div className={`site${entryHeld ? ' site--held' : ''}${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/media' ? ' site--media' : ''}${pathname === '/contact' ? ' site--contact' : ''}${pathname === '/about' ? ' site--about' : ''}`} ref={siteRef} inert={entryHeld ? true : undefined} aria-hidden={entryHeld ? true : undefined}>
       <MorphingBackground />
       <SiteHeader theme={theme} onToggleTheme={toggleTheme} />
       <div className="site-content">
@@ -463,6 +486,7 @@ function App() {
       </div>
       <SiteFooter />
     </div>
+    {entryVisible && <EntryScreen fading={entryPhase === 'fade'} onComplete={finishEntry} />}
     </HomeAudioProvider>
   )
 }
