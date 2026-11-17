@@ -402,7 +402,7 @@ function SiteFooter() {
       <p>© Sanjevan Rajasegar 2026</p>
       <p>
         Website Developed by Sanjevan Rajasegar, Inspired by{' '}
-        <a href="https://www.instagram.com/bicflame" target="_blank" rel="noopener noreferrer">bicflame</a>
+        <a href="https://www.after.band/" target="_blank" rel="noopener noreferrer">after.band</a>
       </p>
     </footer>
   )
