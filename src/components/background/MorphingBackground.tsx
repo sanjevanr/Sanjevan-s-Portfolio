@@ -378,12 +378,13 @@ export default function MorphingBackground() {
       <div className={`morphing-background__stage morphing-background__stage--${mode}`}>
         <svg ref={svgRef} className="morph-mask-svg" viewBox={shapeViewBox(mode)} preserveAspectRatio="xMidYMid meet">
           <defs>
-            <mask id={maskId} x="0" y="0" width={dimensions.width} height={dimensions.height} maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" mask-type="luminance">
-              <rect width={dimensions.width} height={dimensions.height} fill="black" />
-              <path ref={pathRef} d={shapePath(renderedShapeRef.current, mode, liftsRef.current)} fill="white" />
-            </mask>
+            {/* Clip the foreignObject directly: mobile WebKit can leak the
+                masked lime fallback rectangle as a fixed bar at the viewport edge. */}
+            <clipPath id={maskId} clipPathUnits="userSpaceOnUse">
+              <path ref={pathRef} d={shapePath(renderedShapeRef.current, mode, liftsRef.current)} />
+            </clipPath>
           </defs>
-          <foreignObject x="0" y="0" width={dimensions.width} height={dimensions.height} mask={`url(#${maskId})`}>
+          <foreignObject x="0" y="0" width={dimensions.width} height={dimensions.height} clipPath={`url(#${maskId})`}>
             <div className="morphing-background__masked">
               <AmbientBackground />
             </div>
