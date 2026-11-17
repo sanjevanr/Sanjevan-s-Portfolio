@@ -7,7 +7,6 @@ import { IntroPanel } from './components/IntroPanel'
 import PhotoPanel from './components/PhotoPanel'
 import RetroWindow from './components/RetroWindow'
 import { HomeAudioProvider, mobileHomeQuery, tabletHomeQuery, useMediaQuery } from './components/HomeAudio'
-import EnterSiteButton from './components/EnterSiteButton'
 import SocialBrowser from './components/SocialBrowser'
 import SpotifyPlayer from './components/SpotifyPlayer'
 import ThemeToggle from './components/ThemeToggle'
@@ -92,7 +91,6 @@ function SiteHeader({ theme, onToggleTheme }: { theme: Theme; onToggleTheme: () 
       <div className="site-header__brand">
         <h1 className="wordmark">sanjevan rajasegar</h1>
         <div className="site-utilities" role="group" aria-label="Site utilities">
-          <EnterSiteButton />
           <ResumeShortcut />
           <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         </div>

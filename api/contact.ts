@@ -68,7 +68,7 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
   const body = request.body && typeof request.body === 'object' ? request.body as Record<string, unknown> : {}
   if (typeof body.website === 'string' && body.website.trim()) {
-    return response.status(200).json({ success: true })
+    return response.status(400).json({ success: false, error: 'This message could not be accepted.' })
   }
 
   const submission = validateSubmission(body)

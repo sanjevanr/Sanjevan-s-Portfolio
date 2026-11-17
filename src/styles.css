@@ -6730,31 +6730,6 @@ body {
   letter-spacing: .05em;
 }
 
-.enter-site-button {
-  min-width: 78px;
-  cursor: pointer;
-  animation: enter-site-pulse 1.6s ease-in-out infinite;
-}
-
-.enter-site-button .resume-shortcut__label {
-  color: #164f9c;
-}
-
-@keyframes enter-site-pulse {
-  50% {
-    box-shadow:
-      inset 0 1px 0 #fff,
-      0 0 0 2px rgba(255, 255, 255, .55),
-      0 2px 8px rgba(23, 82, 170, .35);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .enter-site-button {
-    animation: none;
-  }
-}
-
 /* ============================================================
    MAXIMISED PROJECTS WINDOW
    ============================================================ */

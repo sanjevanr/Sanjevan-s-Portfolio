@@ -8,6 +8,17 @@ type ContactFields = { name: string; email: string; message: string }
 const maxNameLength = 120
 const maxMessageLength = 5000
 const emptyFields: ContactFields = { name: '', email: '', message: '' }
+const submissionError = 'We could not send your message right now. Please try again in a moment.'
+const friendlyApiErrors = new Set([
+  'Enter a valid name (up to 120 characters).',
+  'Enter a valid email address.',
+  'Enter a message of up to 5000 characters.',
+  'Too many messages. Please try again later.',
+  'Contact email is not configured yet. Please try again later.',
+  'Your message could not be sent. Please try again later.',
+  'This message could not be accepted.',
+  'Use POST to send a message.',
+])
 
 export default function ContactPage() {
   const [state, setState] = useState<SubmitState>('idle')
@@ -40,16 +51,36 @@ export default function ContactPage() {
           website: formData.get('website'),
         }),
       })
-      const result: { success?: boolean; error?: string } = await response.json()
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || 'Your message could not be sent. Please try again.')
+      const responseText = await response.text()
+      let result: { success?: boolean; error?: string } | null = null
+      if (responseText.trim()) {
+        try {
+          const parsed: unknown = JSON.parse(responseText)
+          if (parsed && typeof parsed === 'object') {
+            const payload = parsed as Record<string, unknown>
+            result = {
+              success: payload.success === true,
+              error: typeof payload.error === 'string' ? payload.error : undefined,
+            }
+          }
+        } catch {
+          // Treat empty or malformed function responses as a failed submission.
+        }
       }
+
+      if (!response.ok || result?.success !== true) {
+        setState('error')
+        const apiError = result?.error?.trim()
+        setErrorMessage(apiError && friendlyApiErrors.has(apiError) ? apiError : submissionError)
+        return
+      }
+
       form.reset()
       setFields(emptyFields)
       setState('success')
-    } catch (error) {
+    } catch {
       setState('error')
-      setErrorMessage(error instanceof Error ? error.message : 'Your message could not be sent. Please try again.')
+      setErrorMessage(submissionError)
     }
   }
 
