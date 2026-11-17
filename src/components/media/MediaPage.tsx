@@ -18,6 +18,21 @@ const placeParent: Partial<Record<Place, Place>> = { type: 'media', photo: 'type
 
 const PortfolioReader = lazy(() => import('./PortfolioReader'))
 
+function PortfolioReaderLoadingShell({ portfolio, onClose }: { portfolio: PhotoPortfolio; onClose: () => void }) {
+  return createPortal((
+    <div className="ibooks-reader ibooks-reader--loading" role="dialog" aria-modal="true" aria-label={`Reading ${portfolio.name}`}>
+      <header className="ibooks-toolbar">
+        <div className="ibooks-toolbar__titlebar"><h1 className="ibooks-toolbar__title" title={portfolio.name}>{portfolio.name}</h1></div>
+        <div className="ibooks-toolbar__controls" aria-hidden="true">
+          <button className="ibooks-control ibooks-control--back" type="button" onClick={onClose} aria-label="Back to Finder">‹ <span>Finder</span></button>
+        </div>
+      </header>
+      <div className="ibooks-stage"><span className="sr-only" role="status">Opening {portfolio.name}</span></div>
+      <footer className="ibooks-reader__footer" />
+    </div>
+  ), document.body)
+}
+
 function placeTitle(place: Place) {
   if (place.startsWith('video-item:')) return videoUploads.find((item) => item.id === place.slice(11))?.title ?? 'Video Preview'
   return placeName[place as keyof typeof placeName]
@@ -266,7 +281,7 @@ export default function MediaPage() {
         </div>
       </div>
       {activePortfolio && (
-        <Suspense fallback={createPortal(<div className="ibooks-reader__loading" role="status">Opening {activePortfolio.name}…</div>, document.body)}>
+        <Suspense fallback={<PortfolioReaderLoadingShell portfolio={activePortfolio} onClose={() => setActivePortfolio(null)} />}>
           <PortfolioReader portfolio={activePortfolio} onClose={() => setActivePortfolio(null)} />
         </Suspense>
       )}

@@ -7448,8 +7448,7 @@ body {
 .finder-empty--capsules span { max-width: 260px; color: #93999d; font-size: 12px; }
 
 /* iBooks-inspired full-screen reader for locally hosted photography PDFs. */
-.ibooks-reader,
-.ibooks-reader__loading {
+.ibooks-reader {
   position: fixed;
   z-index: 20000;
   inset: 0;
@@ -7467,23 +7466,15 @@ body {
   background: radial-gradient(ellipse at 50% 42%, #595653 0%, #383633 56%, #242321 100%);
   outline: none;
 }
-.ibooks-reader__loading {
-  display: grid;
-  place-items: center;
-  background: #302f2d;
-  color: #f5f3ef;
-  font-size: 14px;
-}
 .ibooks-toolbar {
   position: relative;
   z-index: 2;
-  display: grid;
-  min-height: 94px;
+  display: flex;
+  min-height: 98px;
   flex: 0 0 auto;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-rows: 42px 38px;
-  align-items: center;
-  gap: 4px 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
   padding: 6px 12px;
   border-bottom: 1px solid #777b7d;
   background:
@@ -7491,11 +7482,15 @@ body {
     linear-gradient(180deg, #f7f8f8 0%, #d4d7d8 48%, #aeb3b6 100%);
   box-shadow: inset 0 1px #fff, 0 2px 7px rgb(0 0 0 / .22);
 }
+.ibooks-toolbar__titlebar {
+  display: grid;
+  min-width: 0;
+  min-height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+}
 .ibooks-toolbar__title {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  width: min(52vw, 520px);
+  width: min(100%, 520px);
   min-width: 0;
   overflow: hidden;
   margin: 0;
@@ -7506,26 +7501,54 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   text-shadow: 0 1px #fff;
-  transform: translateX(-50%);
+}
+.ibooks-control--back {
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  font-size: 21px;
 }
 .ibooks-toolbar__controls {
   display: flex;
   min-width: 0;
-  grid-column: 1 / -1;
+  min-height: 38px;
+  max-width: 100%;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scrollbar-width: none;
-  gap: 5px;
+  gap: 9px;
 }
-.ibooks-toolbar__controls::-webkit-scrollbar { display: none; }
 .ibooks-control--fit { display: inline-flex; }
+.ibooks-toolbar__group { display: flex; min-width: 0; flex: 0 0 auto; align-items: center; gap: 4px; }
+.ibooks-toolbar__group--fit { gap: 4px; }
+.ibooks-toolbar__group--actions { position: relative; }
+.ibooks-toolbar__more { position: relative; display: none; }
+.ibooks-control--menu-download { display: none; }
+.ibooks-toolbar__more > summary { list-style: none; }
+.ibooks-toolbar__more > summary::-webkit-details-marker { display: none; }
+.ibooks-toolbar__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 5px);
+  right: 0;
+  display: none;
+  min-width: 150px;
+  padding: 5px;
+  border: 1px solid #777d80;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #edf0f1, #c3c8ca);
+  box-shadow: 0 5px 14px rgb(0 0 0 / .35), inset 0 1px #fff;
+}
+.ibooks-toolbar__more[open] .ibooks-toolbar__menu { display: grid; gap: 4px; }
+.ibooks-toolbar__menu .ibooks-control { width: 100%; }
+.ibooks-toolbar__menu .ibooks-control--menu-download { justify-content: flex-start; }
 .ibooks-control {
   display: inline-flex;
   min-width: 30px;
-  min-height: 30px;
+  min-height: 40px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
@@ -7546,16 +7569,17 @@ body {
 .ibooks-control:disabled { opacity: .42; cursor: default; }
 .ibooks-control:focus-visible,
 .ibooks-page-count input:focus-visible { outline: 2px solid #166fbd; outline-offset: 2px; }
-.ibooks-control--back { min-width: 78px; justify-content: flex-start; font-size: 21px; }
+.ibooks-control--back { min-height: 40px; }
 .ibooks-control--back span { font-size: 12px; }
 .ibooks-control--text,
 .ibooks-control--download { min-width: auto; }
 .ibooks-control--download { color: #174f7a; font-weight: 600; }
+.ibooks-control__download-icon { display: none; }
 .ibooks-page-count { display: inline-flex; align-items: center; gap: 4px; color: #454b4e; font: 11px/1 var(--mono); white-space: nowrap; }
 .ibooks-page-count input {
   box-sizing: border-box;
   width: 42px;
-  height: 28px;
+  height: 32px;
   padding: 3px;
   border: 1px solid #8e9497;
   border-radius: 3px;
@@ -7579,6 +7603,7 @@ body {
   touch-action: pan-x pan-y pinch-zoom;
   scrollbar-color: #797875 #333230;
 }
+.ibooks-stage__blank { width: 100%; min-width: 100%; min-height: 100%; flex: 1 1 auto; }
 .ibooks-page-area {
   position: relative;
   display: flex;
@@ -7645,19 +7670,30 @@ body {
 @media (max-width: 1180px) {
   .ibooks-control--fit { display: none; }
   .ibooks-toolbar { padding-inline: 8px; }
-  .ibooks-toolbar__controls { justify-content: flex-start; }
+  .ibooks-toolbar__controls { justify-content: center; gap: 7px; }
+  .ibooks-toolbar__group { gap: 3px; }
+  .ibooks-toolbar__divider { display: none; }
+  .ibooks-toolbar__more { display: block; }
+  .ibooks-control--fullscreen { display: none; }
   .ibooks-control { min-height: 40px; padding-inline: 8px; }
   .ibooks-page-area { padding: 16px; }
 }
 @media (max-width: 520px) {
-  .ibooks-toolbar { min-height: 90px; grid-template-rows: 38px 40px; gap: 4px; padding: 4px 6px; }
-  .ibooks-toolbar__title { top: 23px; left: calc(50% + 34px); width: calc(100% - 112px); text-align: center; transform: translate(-50%, -50%); }
-  .ibooks-toolbar__controls { gap: 4px; }
-  .ibooks-control { min-width: 40px; min-height: 40px; padding: 4px 8px; font-size: 11px; }
-  .ibooks-control--back { min-width: 72px; }
+  .ibooks-toolbar { min-height: 0; gap: 3px; padding: 4px 6px; }
+  .ibooks-toolbar__titlebar { min-height: 36px; flex-basis: 36px; }
+  .ibooks-toolbar__title { width: min(100%, 520px); font-size: 11px; }
+  .ibooks-toolbar__controls { justify-content: space-between; gap: 2px; }
+  .ibooks-toolbar__group { gap: 2px; }
+  .ibooks-control { min-width: 32px; min-height: 40px; padding: 3px 2px; font-size: 11px; }
+  .ibooks-control--back { min-width: 0; padding-inline: 3px; font-size: 18px; }
   .ibooks-control--back span { font-size: 11px; }
-  .ibooks-control--download { white-space: nowrap; }
-  .ibooks-page-count input { width: 42px; height: 36px; }
+  .ibooks-control--download { display: none; }
+  .ibooks-control__download-icon { display: inline; font-size: 18px; }
+  .ibooks-toolbar__menu .ibooks-control--menu-download { display: inline-flex; }
+  .ibooks-page-count { gap: 2px; }
+  .ibooks-page-count input { width: 28px; height: 36px; }
+  .ibooks-page-count > span { font-size: 9px; }
+  .ibooks-control--reset .ibooks-control__label { display: none; }
   .ibooks-toolbar__divider { display: none; }
   .ibooks-page-area { padding: 12px; }
   .ibooks-reader__footer { font-size: 9px; }

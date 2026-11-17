@@ -334,23 +334,38 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
       onClick={(event) => { if (event.target === event.currentTarget) handleClose() }}
     >
       <header className="ibooks-toolbar">
-        <button ref={closeButtonRef} className="ibooks-control ibooks-control--back" type="button" onClick={handleClose} aria-label="Back to Finder">‹ <span>Finder</span></button>
-        <h1 className="ibooks-toolbar__title" title={portfolio.name}>{portfolio.name}</h1>
+        <div className="ibooks-toolbar__titlebar"><h1 className="ibooks-toolbar__title" title={portfolio.name}>{portfolio.name}</h1></div>
         <div className="ibooks-toolbar__controls" aria-label="Reader controls">
-          <button className="ibooks-control" type="button" onClick={goToPrevious} disabled={pageHistory.length <= 1} aria-label="Previous page">‹</button>
-          <label className="ibooks-page-count">
-            <input aria-label="Go to page" type="number" min={1} max={pageCount || 1} value={pageInput} onChange={(event) => setPageInput(event.currentTarget.value)} onBlur={() => goToPage(Number(pageInput))} onKeyDown={(event) => { if (event.key === 'Enter') { goToPage(Number(pageInput)); event.currentTarget.blur() } }} />
-            <span>{pageCount ? `– ${pageEnd} / ${pageCount}` : ' / —'}</span>
-          </label>
-          <button className="ibooks-control" type="button" onClick={goToNext} disabled={currentPage + visibleCount > pageCount} aria-label="Next page">›</button>
+          <button ref={closeButtonRef} className="ibooks-control ibooks-control--back" type="button" onClick={handleClose} aria-label="Back to Finder">‹ <span>Finder</span></button>
+          <div className="ibooks-toolbar__group ibooks-toolbar__group--pages">
+            <button className="ibooks-control" type="button" onClick={goToPrevious} disabled={pageHistory.length <= 1} aria-label="Previous page">‹</button>
+            <label className="ibooks-page-count">
+              <input aria-label="Go to page" type="number" min={1} max={pageCount || 1} value={pageInput} onChange={(event) => setPageInput(event.currentTarget.value)} onBlur={() => goToPage(Number(pageInput))} onKeyDown={(event) => { if (event.key === 'Enter') { goToPage(Number(pageInput)); event.currentTarget.blur() } }} />
+              <span>{pageCount ? ` / ${pageCount}` : ' / —'}</span>
+            </label>
+            <button className="ibooks-control" type="button" onClick={goToNext} disabled={currentPage + visibleCount > pageCount} aria-label="Next page">›</button>
+          </div>
           <span className="ibooks-toolbar__divider" aria-hidden="true" />
-          <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('page'); setZoom(1) }}>Fit page</button>
-          <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('width'); setZoom(1) }}>Fit width</button>
-          <button className="ibooks-control" type="button" onClick={() => adjustZoom(-.1)} aria-label="Zoom out" disabled={zoom <= .6}>−</button>
-          <button className="ibooks-control" type="button" onClick={() => adjustZoom(.1)} aria-label="Zoom in" disabled={zoom >= 2.5}>+</button>
-          <button className="ibooks-control ibooks-control--text" type="button" onClick={() => { setZoomMode('page'); setZoom(1) }}>Reset</button>
-          <button className="ibooks-control ibooks-control--text" type="button" onClick={() => void handleFullscreen()} aria-pressed={isFullscreen}>{isFullscreen ? 'Exit full screen' : 'Full screen'}</button>
-          <a className="ibooks-control ibooks-control--download" href={portfolio.pdfUrl} download={portfolio.downloadFilename}>Download PDF</a>
+          <div className="ibooks-toolbar__group ibooks-toolbar__group--zoom">
+            <button className="ibooks-control" type="button" onClick={() => adjustZoom(-.1)} aria-label="Zoom out" title="Zoom out" disabled={zoom <= .6}>−</button>
+            <button className="ibooks-control" type="button" onClick={() => adjustZoom(.1)} aria-label="Zoom in" title="Zoom in" disabled={zoom >= 2.5}>+</button>
+            <button className="ibooks-control ibooks-control--text ibooks-control--reset" type="button" onClick={() => { setZoomMode('page'); setZoom(1) }} aria-label="Reset zoom" title="Reset zoom"><span aria-hidden="true">↻</span><span className="ibooks-control__label">Reset</span></button>
+          </div>
+          <div className="ibooks-toolbar__group ibooks-toolbar__group--fit">
+            <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('page'); setZoom(1) }}>Fit page</button>
+            <button className="ibooks-control ibooks-control--text ibooks-control--fit" type="button" onClick={() => { setZoomMode('width'); setZoom(1) }}>Fit width</button>
+          </div>
+          <div className="ibooks-toolbar__group ibooks-toolbar__group--actions">
+            <button className="ibooks-control ibooks-control--text ibooks-control--fullscreen" type="button" onClick={() => void handleFullscreen()} aria-pressed={isFullscreen}>{isFullscreen ? 'Exit full screen' : 'Full screen'}</button>
+            <details className="ibooks-toolbar__more">
+              <summary className="ibooks-control" aria-label="More reader controls" title="More reader controls">•••</summary>
+              <div className="ibooks-toolbar__menu">
+                <button className="ibooks-control ibooks-control--text" type="button" onClick={() => { void handleFullscreen(); const details = document.querySelector<HTMLDetailsElement>('.ibooks-toolbar__more'); if (details) details.open = false }}>{isFullscreen ? 'Exit full screen' : 'Full screen'}</button>
+                <a className="ibooks-control ibooks-control--text ibooks-control--menu-download" href={portfolio.pdfUrl} download={portfolio.downloadFilename} aria-label="Download PDF">Download PDF</a>
+              </div>
+            </details>
+            <a className="ibooks-control ibooks-control--download" href={portfolio.pdfUrl} download={portfolio.downloadFilename} aria-label="Download PDF" title="Download PDF"><span className="ibooks-control__download-label">Download PDF</span><span className="ibooks-control__download-icon" aria-hidden="true">↓</span></a>
+          </div>
         </div>
       </header>
 
@@ -366,8 +381,9 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
             ))}
           </div>
         ) : (
-          <div className="ibooks-message" role="status">{pageLoading ? 'Preparing the next pages…' : 'Loading portfolio…'}</div>
+          <div className="ibooks-stage__blank" aria-hidden="true" />
         )}
+        <span className="sr-only" role="status" aria-live="polite">{pageLoading ? `Loading page ${currentPage}` : ''}</span>
       </div>
       <footer className="ibooks-reader__footer">
         <span>{visiblePages.length ? `Page ${displayedStart}${pageEnd > displayedStart ? `–${pageEnd}` : ''} of ${pageCount}` : 'Loading pages'}</span>

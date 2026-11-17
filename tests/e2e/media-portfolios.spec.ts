@@ -51,6 +51,8 @@ test.describe('Media photography portfolios', () => {
     await expect.poll(async () => covers.evaluateAll((images) => images.every((image) => (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
     await page.getByRole('option', { name: 'Selected Works', exact: true }).dblclick()
     await expect(page.getByRole('dialog', { name: 'Reading Selected Works' })).toBeVisible()
+    await expect(page.locator('.ibooks-reader__loading')).toHaveCount(0)
+    await expect(page.getByText(/Opening Selected Works/)).toBeHidden()
     const reader = page.getByRole('dialog', { name: 'Reading Selected Works' })
     const titleCenter = async () => reader.locator('.ibooks-toolbar__title').evaluate((title) => {
       const titleBounds = title.getBoundingClientRect()
@@ -127,15 +129,48 @@ test.describe('Media photography portfolios', () => {
     const reader = page.getByRole('dialog', { name: 'Reading Selected Works' })
     await expect(reader.getByRole('button', { name: 'Fit page' })).toBeHidden()
     await expect(reader.getByRole('button', { name: 'Fit width' })).toBeHidden()
+    await expect(reader.getByRole('button', { name: 'Reset zoom' })).toBeVisible()
+    await reader.locator('.ibooks-toolbar__more > summary').click()
+    await expect(reader.locator('.ibooks-toolbar__menu button').first()).toBeVisible()
+    await expect(reader.locator('.ibooks-toolbar__menu button')).toHaveCount(1)
+    await expect(reader.locator('.ibooks-toolbar__menu .ibooks-control--menu-download')).toBeVisible()
     const headerAlignment = await reader.locator('.ibooks-control--back').evaluate((back) => {
       const title = document.querySelector('.ibooks-toolbar__title')!.getBoundingClientRect()
       const backBounds = back.getBoundingClientRect()
-      return Math.abs((title.top + title.bottom) / 2 - (backBounds.top + backBounds.bottom) / 2)
+      const controls = document.querySelector('.ibooks-toolbar__controls')!.getBoundingClientRect()
+      return {
+        titleCentered: Math.abs((title.left + title.right) / 2 - (document.querySelector('.ibooks-reader')!.getBoundingClientRect().width / 2)) < 1,
+        backSharesControlsRow: Math.abs((backBounds.top + backBounds.bottom) / 2 - (controls.top + controls.bottom) / 2) < 1,
+      }
     })
-    expect(headerAlignment).toBeLessThan(2)
+    expect(headerAlignment.titleCentered).toBe(true)
+    expect(headerAlignment.backSharesControlsRow).toBe(true)
     await expectPdfCanvasHasArtwork(page, 1)
     await expect(page.locator('.ibooks-page canvas[aria-label="Page 2"]')).toHaveCount(0)
     await expect(page.locator('.site--media .media-player-window')).toBeHidden()
+    })
+
+    test('THE JAPANESE EVERYMAN uses the centered mobile titlebar and shared controls row', async ({ page }) => {
+      await page.goto('/media')
+      await page.getByRole('option', { name: 'Photo', exact: true }).tap()
+      await page.getByRole('option', { name: 'Portfolios', exact: true }).tap()
+      await page.getByRole('option', { name: 'THE JAPANESE EVERYMAN', exact: true }).tap()
+      const reader = page.getByRole('dialog', { name: 'Reading THE JAPANESE EVERYMAN' })
+      await expect(reader).toBeVisible()
+      await expectPdfCanvasHasArtwork(page, 1)
+      const alignment = await reader.evaluate((dialog) => {
+        const bounds = (node: Element) => node.getBoundingClientRect()
+        const title = bounds(dialog.querySelector('.ibooks-toolbar__title')!)
+        const readerBounds = bounds(dialog)
+        const controls = bounds(dialog.querySelector('.ibooks-toolbar__controls')!)
+        const back = bounds(dialog.querySelector('.ibooks-control--back')!)
+        return {
+          title: Math.abs((title.left + title.right) / 2 - (readerBounds.left + readerBounds.right) / 2),
+          back: Math.abs((back.top + back.bottom) / 2 - (controls.top + controls.bottom) / 2),
+        }
+      })
+      expect(alignment.title).toBeLessThan(1)
+      expect(alignment.back).toBeLessThan(1)
     })
   })
 })
@@ -150,6 +185,7 @@ for (const viewport of [{ width: 768, height: 1024 }, { width: 1024, height: 768
       await page.getByRole('option', { name: 'THE JAPANESE EVERYMAN', exact: true }).dblclick()
       await expect(page.getByRole('dialog', { name: 'Reading THE JAPANESE EVERYMAN' }).getByRole('button', { name: 'Fit page' })).toBeHidden()
       await expect(page.getByRole('dialog', { name: 'Reading THE JAPANESE EVERYMAN' }).getByRole('button', { name: 'Fit width' })).toBeHidden()
+      await expect(page.locator('.ibooks-reader__loading')).toHaveCount(0)
       await expectPdfCanvasHasArtwork(page, 1)
       await page.getByRole('button', { name: 'Next page' }).click()
       await expect(page.locator('.ibooks-page canvas[aria-label="Page 2"]')).toBeVisible()
@@ -186,6 +222,7 @@ for (const viewport of [
       if (isTouchSized) {
         await expect(reader.getByRole('button', { name: 'Fit page' })).toBeHidden()
         await expect(reader.getByRole('button', { name: 'Fit width' })).toBeHidden()
+        await expect(reader.locator('.ibooks-toolbar__more > summary')).toBeVisible()
       } else {
         await expect(reader.getByRole('button', { name: 'Fit page' })).toBeVisible()
         await expect(reader.getByRole('button', { name: 'Fit width' })).toBeVisible()
@@ -201,16 +238,37 @@ for (const viewport of [
         return {
           pageOverflow: document.documentElement.scrollWidth > window.innerWidth,
           toolbarOverflow: bounds(reader).width < bounds(back).right || bounds(reader).width < bounds(title).right,
-          titleBackCenterDifference: Math.abs((bounds(title).top + bounds(title).bottom) / 2 - (bounds(back).top + bounds(back).bottom) / 2),
-          controlsBelowHeader: bounds(controls).top >= bounds(title).bottom - 1,
+          titleCenterDifference: Math.abs((bounds(title).left + bounds(title).right) / 2 - (bounds(reader).left + bounds(reader).right) / 2),
+          backSharesControlsRow: Math.abs((bounds(back).top + bounds(back).bottom) / 2 - (bounds(controls).top + bounds(controls).bottom) / 2),
+          controlsBelowTitlebar: bounds(controls).top >= bounds(title).bottom - 1,
           pageWithinStageAtFit: bounds(canvas).width <= bounds(stage).width,
+          visibleControlsWithinReader: [...document.querySelectorAll<HTMLElement>('.ibooks-toolbar__controls .ibooks-control')]
+            .filter((control) => control.getClientRects().length > 0)
+            .every((control) => {
+              const controlBounds = bounds(control)
+              return controlBounds.left >= bounds(reader).left && controlBounds.right <= bounds(reader).right
+            }),
+          firstControlIsFinder: document.querySelector('.ibooks-toolbar__controls .ibooks-control')?.classList.contains('ibooks-control--back') ?? false,
+          controlRowAlignment: (() => {
+            const centers = [...document.querySelectorAll<HTMLElement>('.ibooks-toolbar__controls .ibooks-control')]
+              .filter((control) => control.getClientRects().length > 0)
+              .map((control) => (bounds(control).top + bounds(control).bottom) / 2)
+            return Math.max(...centers) - Math.min(...centers)
+          })(),
+          controlCenters: [...document.querySelectorAll<HTMLElement>('.ibooks-toolbar__controls .ibooks-control')]
+            .filter((control) => control.getClientRects().length > 0)
+            .map((control) => ({ className: control.className, top: bounds(control).top, bottom: bounds(control).bottom })),
         }
       })
       expect(layout.pageOverflow).toBe(false)
       expect(layout.toolbarOverflow).toBe(false)
-      expect(layout.titleBackCenterDifference).toBeLessThan(3)
-      expect(layout.controlsBelowHeader).toBe(true)
+      expect(layout.titleCenterDifference).toBeLessThan(1)
+      expect(layout.backSharesControlsRow).toBeLessThan(1)
+      expect(layout.controlsBelowTitlebar).toBe(true)
       expect(layout.pageWithinStageAtFit).toBe(true)
+      expect(layout.visibleControlsWithinReader).toBe(true)
+      expect(layout.firstControlIsFinder).toBe(true)
+      expect(layout.controlRowAlignment, JSON.stringify(layout.controlCenters)).toBeLessThan(1)
     })
   })
 }
