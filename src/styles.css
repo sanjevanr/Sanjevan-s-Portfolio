@@ -4502,12 +4502,12 @@ body {
   .finder-sidebar { display: none; }
   .finder-toolbar { min-height: 42px; gap: 5px; padding-inline: 6px; }
   .finder-history-controls button { width: 28px; }
-  .finder-breadcrumbs { min-width: 0; gap: 2px; }
-  .finder-breadcrumb { min-width: 0; gap: 2px; }
-  .finder-breadcrumb:not(.is-current) { flex: 0 1 auto; }
-  .finder-breadcrumb.is-current { min-width: 0; flex: 1 1 0; }
-  .finder-breadcrumbs button { max-width: 100%; padding-inline: 3px; font-size: 10px; }
-  .finder-breadcrumb.is-current button { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .finder-breadcrumbs { min-width: 0; justify-content: flex-start; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .finder-breadcrumbs::-webkit-scrollbar { height: 0; }
+  .finder-breadcrumb { flex: 0 0 auto; min-width: 0; gap: 2px; }
+  .finder-breadcrumb.is-current { flex: 0 1 auto; }
+  .finder-breadcrumbs button { width: auto; max-width: 100%; padding-inline: 3px; font-size: 10px; text-align: start; }
+  .finder-breadcrumb.is-current button { max-width: min(46vw, 180px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .media-finder-window > .retro-window__body { min-height: 0; flex: 1 1 auto; overflow: hidden; }
   .finder-window { height: 100%; min-height: 0; flex: 1 1 auto; grid-template-rows: auto minmax(0, 1fr) auto; }
   .finder-layout { display: flex; min-height: 0; flex: 1 1 auto; overflow: hidden; }
@@ -4530,6 +4530,9 @@ body {
   .retro-window__dialog.media-finder-window[open] .finder-canvas { min-height: 0; overflow: auto; }
   .finder-items { grid-template-columns: repeat(auto-fill, 82px); gap: 12px; }
   .finder-item { width: 82px; min-height: 116px; padding-inline: 3px; font-size: 11px; }
+  .finder-items--videos { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 6px; width: 100%; justify-content: stretch; }
+  .finder-items--videos .finder-item { width: 100%; min-width: 0; min-height: 0; padding: 6px 2px 4px; font-size: 10px; line-height: 1.25; }
+  .finder-items--videos .finder-icon--video-file { transform: scale(.82); }
   .finder-icon--folder { transform: scale(.86); }
   .retro-window__dialog.media-finder-window[open] { width: calc(100vw - 16px); height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
 }

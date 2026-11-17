@@ -201,7 +201,7 @@ function MediaFinder({ onVideoPreviewChange, onPortfolioOpen, preferWideThumbnai
                 </a>
               </div>
           ) : entries.length ? (
-            <div className="finder-items" role="listbox" aria-label="Files and folders">
+            <div className={`finder-items${place === 'video' ? ' finder-items--videos' : ''}`} role="listbox" aria-label="Files and folders">
               {entries.map((entry) => {
                 const id = entry.kind === 'folder' ? entry.id : entry.item.id
                 const name = entry.kind === 'folder' ? entry.name : entry.kind === 'portfolio' ? entry.item.name : entry.item.title
