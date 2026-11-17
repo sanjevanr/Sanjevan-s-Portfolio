@@ -25,9 +25,9 @@ export function trackIdForPath(pathname: string): TrackId | null {
   return null
 }
 
-/** Phones never get an audible track. Saved preferences are untouched. */
-export function permittedTrackId(routeTrackId: TrackId | null, isPhone: boolean): TrackId | null {
-  return isPhone ? null : routeTrackId
+/** All supported routes use their selected track on every form factor. */
+export function permittedTrackId(routeTrackId: TrackId | null, _isPhone: boolean): TrackId | null {
+  return routeTrackId
 }
 
 export function createInitialState(pathname: string, isPhone = false): AudioControllerState {

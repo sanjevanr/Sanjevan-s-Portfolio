@@ -15,10 +15,10 @@ const play: AudioAction = { type: 'userPlay' }
 const pause: AudioAction = { type: 'userPause' }
 
 describe('audioReducer', () => {
-  it('selects the Media track on desktop and suppresses it on phones', () => {
+  it('selects the Media track on desktop and phones', () => {
     expect(trackIdForPath('/media')).toBe('media')
     expect(createInitialState('/media').activeTrackId).toBe('media')
-    expect(createInitialState('/media', true).activeTrackId).toBeNull()
+    expect(createInitialState('/media', true).activeTrackId).toBe('media')
   })
 
   it('A: pausing projects leaves the home preference playing', () => {
@@ -89,20 +89,20 @@ describe('audioReducer', () => {
     expect(state.actualPlayback).toBe('paused')
   })
 
-  it('phones suppress both tracks without touching preferences', () => {
-    expect(permittedTrackId('home', true)).toBeNull()
-    expect(permittedTrackId('projects', true)).toBeNull()
-    expect(permittedTrackId('about', true)).toBeNull()
-    expect(permittedTrackId('media', true)).toBeNull()
+  it('phone layouts use the selected route track without changing preferences', () => {
+    expect(permittedTrackId('home', true)).toBe('home')
+    expect(permittedTrackId('projects', true)).toBe('projects')
+    expect(permittedTrackId('about', true)).toBe('about')
+    expect(permittedTrackId('media', true)).toBe('media')
     expect(permittedTrackId('home', false)).toBe('home')
     expect(permittedTrackId('projects', false)).toBe('projects')
     expect(permittedTrackId('media', false)).toBe('media')
 
     for (const path of ['/', '/projects', '/about', '/media']) {
       const state = createInitialState(path, true)
-      expect(state.activeTrackId).toBeNull()
-      expect(state.actualPlayback).toBe('paused')
-      expect(activeWantsPlayback(state)).toBe(false)
+      expect(state.activeTrackId).toBe(trackIdForPath(path))
+      expect(state.actualPlayback).toBe('loading')
+      expect(activeWantsPlayback(state)).toBe(true)
       expect(state.tracks.home.desiredPlayback).toBe('playing')
       expect(state.tracks.projects.desiredPlayback).toBe('playing')
       expect(state.tracks.about.desiredPlayback).toBe('playing')
@@ -110,12 +110,12 @@ describe('audioReducer', () => {
     }
   })
 
-  it('route changes on a phone never activate a track', () => {
+  it('route changes on a phone activate the selected route track', () => {
     const phoneRoute = (trackId: TrackId): AudioAction => ({ type: 'routeChanged', trackId: permittedTrackId(trackId, true) })
     const state = run(createInitialState('/', true), phoneRoute('projects'), phoneRoute('home'), phoneRoute('projects'))
-    expect(state.activeTrackId).toBeNull()
-    expect(activeWantsPlayback(state)).toBe(false)
-    expect(run(state, play)).toBe(state)
+    expect(state.activeTrackId).toBe('projects')
+    expect(activeWantsPlayback(state)).toBe(true)
+    expect(run(state, play).actualPlayback).toBe('loading')
   })
 
   it('a phone round trip restores each track from its own preference', () => {

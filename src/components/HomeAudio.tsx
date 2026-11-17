@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { activeWantsPlayback, audioReducer, createInitialState, permittedTrackId, type ActualPlayback, type AudioAction, type AudioControllerState } from '../audio/audioState'
 import { AudioTransport, type TransportReport } from '../audio/audioTransport'
 import { AudioPauseCoordinator, type AutomaticPauseReason } from '../audio/audioPauseCoordinator'
+import { installAutoplayFallback } from '../audio/autoplayFallback'
 import { homeTrack, trackIdForPath, tracksById, type SiteTrack } from '../data/tracks'
 
 /* Must match the CSS phone query:
@@ -62,6 +63,8 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
   const transportRef = useRef<AudioTransport | null>(null)
   const pauseCoordinatorRef = useRef(new AudioPauseCoordinator())
+  const autoplayFallbackCleanupRef = useRef<(() => void) | null>(null)
+  const setupAutoplayFallbackRef = useRef<() => void>(() => {})
   const { pathname } = useLocation()
   const routeTrackId = trackIdForPath(pathname)
   const isPhone = useMediaQuery(mobileHomeQuery)
@@ -70,6 +73,11 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   const [duration, setDuration] = useState(0)
   const [canSeek, setCanSeek] = useState(false)
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null)
+
+  const clearAutoplayFallback = useCallback(() => {
+    autoplayFallbackCleanupRef.current?.()
+    autoplayFallbackCleanupRef.current = null
+  }, [])
 
   const apply = useCallback((action: AudioAction) => {
     const next = audioReducer(stateRef.current, action)
@@ -93,7 +101,11 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     }
 
     const shouldResume = coordinator.release(reason)
-    if (!shouldResume || coordinator.isPaused || !activeWantsPlayback(stateRef.current)) return
+    if (coordinator.isPaused || !activeWantsPlayback(stateRef.current)) return
+    if (!shouldResume) {
+      setupAutoplayFallbackRef.current()
+      return
+    }
     const next = apply({ type: 'automaticResume' })
     const trackId = next.activeTrackId
     transport?.activate(trackId ? tracksById[trackId].src : null, Boolean(trackId), next.operationId)
@@ -165,6 +177,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
 
     const onReport = (report: TransportReport) => {
       apply({ type: 'transportReported', operationId: report.operationId, status: report.status })
+      if (report.status === 'playing') clearAutoplayFallback()
     }
     const transport = new AudioTransport(audio, onReport, devLog)
     transportRef.current = transport
@@ -184,6 +197,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
 
     return () => {
       transport.destroy()
+      clearAutoplayFallback()
       if (transportRef.current === transport) transportRef.current = null
       audio.removeEventListener('play', onPlay)
       audio.removeEventListener('loadedmetadata', syncMetadata)
@@ -202,21 +216,45 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
         audioContextRef.current = null
       }, 0)
     }
-  }, [apply, prepareAnalyser])
+  }, [apply, clearAutoplayFallback, prepareAnalyser])
 
   useEffect(() => {
     const transport = transportRef.current
     if (!transport) return
     const next = apply({ type: 'routeChanged', trackId: permittedTrackId(routeTrackId, isPhone) })
     const trackId = next.activeTrackId
-    transport.activate(trackId ? tracksById[trackId].src : null, activeWantsPlayback(next) && !pauseCoordinatorRef.current.isPaused, next.operationId)
-  }, [apply, isPhone, routeTrackId])
+    const shouldPlay = activeWantsPlayback(next) && !pauseCoordinatorRef.current.isPaused
+    clearAutoplayFallback()
+    setupAutoplayFallbackRef.current = () => {
+      const current = stateRef.current
+      if (autoplayFallbackCleanupRef.current || !activeWantsPlayback(current) || current.actualPlayback === 'playing' || pauseCoordinatorRef.current.isPaused) return
+      autoplayFallbackCleanupRef.current = installAutoplayFallback(document,
+        (event) => {
+          const target = event.target
+          if (target instanceof Element && target.closest('.spotify-player__play')) return false
+          return activeWantsPlayback(stateRef.current) && stateRef.current.actualPlayback !== 'playing' && !pauseCoordinatorRef.current.isPaused
+        },
+        () => {
+          const latest = stateRef.current
+          if (!activeWantsPlayback(latest) || pauseCoordinatorRef.current.isPaused) return
+          transportRef.current?.playFromGesture(latest.operationId)
+          const audio = audioRef.current
+          if (audio) void prepareAnalyser(audio, true)
+        },
+      )
+    }
+    if (shouldPlay) {
+      setupAutoplayFallbackRef.current()
+    }
+    transport.activate(trackId ? tracksById[trackId].src : null, shouldPlay, next.operationId)
+  }, [apply, clearAutoplayFallback, isPhone, prepareAnalyser, routeTrackId])
 
   const togglePlayback = useCallback(() => {
     const transport = transportRef.current
     const audio = audioRef.current
     if (!transport || !audio || !stateRef.current.activeTrackId) return
     if (stateRef.current.actualPlayback === 'playing') {
+      clearAutoplayFallback()
       pauseCoordinatorRef.current.cancelResumeOnRelease()
       transport.pause(apply({ type: 'userPause' }).operationId)
       return
@@ -229,7 +267,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     }
     transport.playFromGesture(next.operationId)
     void prepareAnalyser(audio, true)
-  }, [apply, prepareAnalyser])
+  }, [apply, clearAutoplayFallback, prepareAnalyser])
 
   const seekTo = useCallback((time: number) => {
     const audio = audioRef.current

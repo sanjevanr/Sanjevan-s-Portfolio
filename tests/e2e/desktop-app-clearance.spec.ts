@@ -114,6 +114,34 @@ for (const viewport of desktopViewports) {
         await expect(dialog).toBeHidden()
       }
     })
+
+    test('the red control closes the maximised view', async ({ page }) => {
+      await page.goto('/projects')
+      const section = page.locator('section.projects-workspace')
+      await section.getByRole('button', { name: /maximise/i }).click()
+      const dialog = page.locator('dialog.projects-workspace[open]')
+      await expect(dialog).toBeVisible()
+      await dialog.getByRole('button', { name: 'Close expanded Projects window' }).click()
+      await expect(dialog).toBeHidden()
+      await expect(section).toBeVisible()
+    })
+
+    test('Spotto YouTube caption sits below the player through gallery transitions', async ({ page }) => {
+      await page.goto('/projects')
+      await page.getByRole('option', { name: 'Spotto' }).click()
+      await page.getByRole('tab', { name: 'Media' }).click()
+      const frame = page.locator('.project-media__current--youtube')
+      const caption = page.locator('.project-media__caption--standalone')
+      await expect(frame).toBeVisible()
+      await expect(caption).toHaveText('Spotto Pitch Video')
+      const initial = await frame.boundingBox()
+      const captionBounds = await caption.boundingBox()
+      expect(initial && captionBounds && captionBounds.y).toBeGreaterThan(initial!.y + initial!.height - 1)
+      await page.getByRole('button', { name: 'Next media' }).click()
+      await expect(page.locator('.project-media__current--image')).toBeVisible()
+      await page.getByRole('button', { name: 'Previous media' }).click()
+      await expect(frame.locator('iframe, .project-media__youtube-poster')).toBeVisible()
+    })
   })
 }
 

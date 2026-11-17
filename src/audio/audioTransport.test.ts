@@ -255,4 +255,22 @@ describe('AudioTransport with the reducer', () => {
     await flush()
     expect(state.actualPlayback).toBe('playing')
   })
+
+  it('ignores a stale autoplay rejection after the gesture retry succeeds', async () => {
+    const media = new FakeMedia()
+    media.autoResolve = false
+    let state = createInitialState('/')
+    const transport = new AudioTransport(media, (report) => {
+      state = audioReducer(state, { type: 'transportReported', operationId: report.operationId, status: report.status })
+    })
+    transport.activate(sources.home, true, state.operationId)
+    const initialAttempt = media.plays[0]
+    transport.playFromGesture(state.operationId)
+    const gestureAttempt = media.plays[1]
+    gestureAttempt.resolve()
+    await flush()
+    initialAttempt.reject(Object.assign(new Error('blocked'), { name: 'NotAllowedError' }))
+    await flush()
+    expect(state.actualPlayback).toBe('playing')
+  })
 })

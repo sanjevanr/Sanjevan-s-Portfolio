@@ -26,6 +26,7 @@ export class AudioTransport {
   private operationId = 0
   private assignedSrc: string | null = null
   private playPending = false
+  private playAttempt = 0
   private wantsPlay = false
   private destroyed = false
   private readonly media: MediaLike
@@ -98,6 +99,7 @@ export class AudioTransport {
     this.operationId = operationId
     this.wantsPlay = false
     this.playPending = false
+    this.playAttempt += 1
     this.media.pause()
     this.report(operationId, 'paused')
   }
@@ -112,6 +114,7 @@ export class AudioTransport {
   }
 
   private attemptPlay(operationId: number) {
+    const attemptId = ++this.playAttempt
     this.playPending = true
     this.report(operationId, 'loading')
     this.log?.('[audio] play attempt', {
@@ -129,12 +132,16 @@ export class AudioTransport {
     }
     attempt.then(
       () => {
+        if (attemptId !== this.playAttempt) return
         if (!this.wantsPlay && !this.media.paused) this.media.pause()
         if (operationId !== this.operationId) return
         this.playPending = false
         this.report(operationId, this.media.paused ? 'paused' : 'playing')
       },
-      (error: unknown) => this.handleFailure(operationId, error),
+      (error: unknown) => {
+        if (attemptId !== this.playAttempt) return
+        this.handleFailure(operationId, error)
+      },
     )
   }
 

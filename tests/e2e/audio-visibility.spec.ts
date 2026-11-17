@@ -28,6 +28,31 @@ async function setVisibility(page: Page, visibility: 'hidden' | 'visible') {
 test.describe('shared music pause coordination', () => {
   test.use({ viewport: { width: 1366, height: 900 } })
 
+  test('recovers blocked autoplay on the first trusted navigation interaction', async ({ page }) => {
+    await page.addInitScript(() => {
+      const nativePlay = HTMLMediaElement.prototype.play
+      let rejectedInitialAttempt = false
+      ;(window as Window & { __portfolioAudioPlayCalls?: number }).__portfolioAudioPlayCalls = 0
+      HTMLMediaElement.prototype.play = function () {
+        if (this.classList.contains('home-audio')) {
+          const testWindow = window as Window & { __portfolioAudioPlayCalls: number }
+          testWindow.__portfolioAudioPlayCalls += 1
+          if (!rejectedInitialAttempt) {
+            rejectedInitialAttempt = true
+            return Promise.reject(new DOMException('Autoplay was blocked', 'NotAllowedError'))
+          }
+        }
+        return nativePlay.call(this)
+      }
+    })
+    await page.goto('/')
+    await expect.poll(() => page.evaluate(() => (window as Window & { __portfolioAudioPlayCalls?: number }).__portfolioAudioPlayCalls)).toBe(1)
+    await page.getByRole('link', { name: 'projects', exact: true }).click()
+    await expect(page).toHaveURL(/\/projects$/)
+    await expect.poll(() => page.evaluate(() => (window as Window & { __portfolioAudioPlayCalls?: number }).__portfolioAudioPlayCalls)).toBeGreaterThanOrEqual(2)
+    await expect.poll(() => page.locator('audio.home-audio').evaluate((element) => !(element as HTMLAudioElement).paused), { timeout: 10_000 }).toBe(true)
+  })
+
   test('uses the active route artwork as soon as its player renders', async ({ page }) => {
     await page.goto('/')
     const artwork = page.locator('.spotify-player__art img').first()

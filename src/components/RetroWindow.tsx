@@ -91,8 +91,8 @@ export default function RetroWindow({
               expanded
               showMaximise={!expandedCloseWithRedButton || expandedCloseAndRestore}
               onMaximise={closeDialog}
-              onClose={expandedCloseWithRedButton || expandedCloseAndRestore ? closeDialog : undefined}
-              closeLabel={expandedCloseWithRedButton || expandedCloseAndRestore ? `Close expanded ${title.replace(/\.exe$/i, '')} window` : undefined}
+              onClose={closeDialog}
+              closeLabel={`Close expanded ${title.replace(/\.exe$/i, '')} window`}
             />
             {showTitle && <h2 className="retro-window__title">{title}</h2>}
           </header>
