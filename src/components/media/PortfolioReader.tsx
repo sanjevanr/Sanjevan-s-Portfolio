@@ -7,6 +7,15 @@ import type { PhotoPortfolio } from '../../data/mediaLibrary'
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl
 
+// The reader code is warmed when the Finder's Portfolios folder opens. Cache
+// the separate PDF.js worker then too, so selecting a portfolio can start
+// parsing immediately rather than waiting for another script request.
+if (typeof window !== 'undefined') {
+  void fetch(pdfWorkerUrl, { cache: 'force-cache' })
+    .then((response) => response.ok ? response.arrayBuffer() : undefined)
+    .catch(() => undefined)
+}
+
 type ZoomMode = 'page' | 'width'
 
 function PdfPage({
@@ -40,7 +49,8 @@ function PdfPage({
     if (!canvas || !context) return
 
     const viewport = page.getViewport({ scale })
-    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+    const pixelRatioLimit = window.matchMedia('(max-width: 600px)').matches ? 1.25 : 1.75
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, pixelRatioLimit)
     const buffer = document.createElement('canvas')
     buffer.width = Math.ceil(viewport.width * pixelRatio)
     buffer.height = Math.ceil(viewport.height * pixelRatio)
@@ -126,6 +136,7 @@ export default function PortfolioReader({ portfolio, onClose }: { portfolio: Pho
     setDocumentError('')
     setPageError('')
     setPageCount(0)
+    setPageSet(null)
     setCurrentPage(1)
     setPageHistory([1])
     setPageLoading(true)

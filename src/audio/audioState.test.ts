@@ -77,6 +77,18 @@ describe('audioReducer', () => {
     expect(state.tracks.home.desiredPlayback).toBe('playing')
   })
 
+  it('automatic pause and resume preserve the user playback preference', () => {
+    let state = run(createInitialState('/'), { type: 'automaticPause' })
+    expect(state.tracks.home.desiredPlayback).toBe('playing')
+    expect(state.actualPlayback).toBe('paused')
+    state = run(state, { type: 'automaticResume' })
+    expect(state.tracks.home.desiredPlayback).toBe('playing')
+    expect(state.actualPlayback).toBe('loading')
+    state = run(state, pause, { type: 'automaticPause' }, { type: 'automaticResume' })
+    expect(state.tracks.home.desiredPlayback).toBe('paused')
+    expect(state.actualPlayback).toBe('paused')
+  })
+
   it('phones suppress both tracks without touching preferences', () => {
     expect(permittedTrackId('home', true)).toBeNull()
     expect(permittedTrackId('projects', true)).toBeNull()

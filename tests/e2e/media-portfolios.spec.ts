@@ -104,9 +104,20 @@ test.describe('Media photography portfolios', () => {
   test('THE JAPANESE EVERYMAN opens from the supplied local PDF and downloads with its descriptive filename', async ({ page }) => {
     test.setTimeout(120_000)
     await openPortfolios(page)
+    const pdfResponses: string[] = []
+    page.on('response', (response) => {
+      if (response.url().includes('/portfolios/the-japanese-everyman.pdf')) {
+        void response.allHeaders().then((headers) => pdfResponses.push(`${response.status()} ${headers['content-range'] ?? 'full response'}`))
+      }
+    })
+    const firstPageStartedAt = Date.now()
     await page.getByRole('option', { name: 'THE JAPANESE EVERYMAN', exact: true }).dblclick()
     await expect(page.getByRole('dialog', { name: 'Reading THE JAPANESE EVERYMAN' })).toBeVisible()
     await expectPdfCanvasHasArtwork(page, 1)
+    const firstPageMs = Date.now() - firstPageStartedAt
+    console.info(`[portfolio performance] THE JAPANESE EVERYMAN first visible page: ${firstPageMs}ms`)
+    console.info(`[portfolio performance] PDF responses: ${pdfResponses.join(', ')}`)
+    expect(firstPageMs).toBeLessThan(15_000)
     const downloadPromise = page.waitForEvent('download')
     await page.getByRole('link', { name: 'Download PDF' }).click()
     const download = await downloadPromise
@@ -115,6 +126,18 @@ test.describe('Media photography portfolios', () => {
     await expect(page.locator('.ibooks-page canvas[aria-label="Page 2"]')).toBeVisible()
     await expect(page.locator('.ibooks-page canvas[aria-label="Page 3"]')).toBeVisible()
     await expectPdfCanvasHasArtwork(page, 3)
+  })
+
+  test('rapidly closes and switches between the locally hosted portfolios without stale pages', async ({ page }) => {
+    test.setTimeout(120_000)
+    await openPortfolios(page)
+    for (const [name, firstPage] of [['Selected Works', 1], ['THE JAPANESE EVERYMAN', 1]] as const) {
+      await page.getByRole('option', { name, exact: true }).dblclick()
+      await expect(page.getByRole('dialog', { name: `Reading ${name}` })).toBeVisible()
+      await expectPdfCanvasHasArtwork(page, firstPage)
+      await page.getByRole('button', { name: 'Back to Finder' }).click()
+      await expect(page.getByRole('dialog', { name: `Reading ${name}` })).toBeHidden()
+    }
   })
 
   test.describe('phone reader', () => {

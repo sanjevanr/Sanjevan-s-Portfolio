@@ -13,6 +13,8 @@ export type AudioAction =
   | { type: 'routeChanged'; trackId: TrackId | null }
   | { type: 'userPlay' }
   | { type: 'userPause' }
+  | { type: 'automaticPause' }
+  | { type: 'automaticResume' }
   | { type: 'transportReported'; operationId: number; status: ActualPlayback }
 
 export function trackIdForPath(pathname: string): TrackId | null {
@@ -76,6 +78,14 @@ export function audioReducer(state: AudioControllerState, action: AudioAction): 
         operationId: state.operationId + 1,
       }
     }
+    case 'automaticPause':
+      return { ...state, actualPlayback: 'paused', operationId: state.operationId + 1 }
+    case 'automaticResume':
+      return {
+        ...state,
+        actualPlayback: activeWantsPlayback(state) ? 'loading' : 'paused',
+        operationId: state.operationId + 1,
+      }
     case 'transportReported': {
       if (action.operationId !== state.operationId || action.status === state.actualPlayback) return state
       return { ...state, actualPlayback: action.status }

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { photoPortfolios, videoUploads, type PhotoPortfolio, type FinderVideo } from '../../data/mediaLibrary'
-import { mobileHomeQuery, tabletHomeQuery, useMediaQuery } from '../HomeAudio'
+import { mobileHomeQuery, tabletHomeQuery, useHomeAudio, useMediaQuery } from '../HomeAudio'
 import RetroWindow from '../RetroWindow'
 import SpotifyPlayer from '../SpotifyPlayer'
 
@@ -16,7 +16,8 @@ const placeName: Record<'media' | 'type' | 'photo' | 'video' | 'portfolios' | 'c
 }
 const placeParent: Partial<Record<Place, Place>> = { type: 'media', photo: 'type', video: 'type', portfolios: 'photo', capsules: 'photo' }
 
-const PortfolioReader = lazy(() => import('./PortfolioReader'))
+const loadPortfolioReader = () => import('./PortfolioReader')
+const PortfolioReader = lazy(loadPortfolioReader)
 
 function PortfolioReaderLoadingShell({ portfolio, onClose }: { portfolio: PhotoPortfolio; onClose: () => void }) {
   return createPortal((
@@ -72,6 +73,10 @@ function MediaFinder({ onVideoPreviewChange, onPortfolioOpen, preferWideThumbnai
   useEffect(() => {
     onVideoPreviewChange(place.startsWith('video-item:'))
   }, [onVideoPreviewChange, place])
+
+  useEffect(() => {
+    if (place === 'portfolios') void loadPortfolioReader().catch(() => undefined)
+  }, [place])
 
   const goTo = (target: Place, record = true) => {
     setPlace(target)
@@ -256,14 +261,20 @@ function MediaFinder({ onVideoPreviewChange, onPortfolioOpen, preferWideThumbnai
 export default function MediaPage() {
   const isPhone = useMediaQuery(mobileHomeQuery)
   const isTablet = useMediaQuery(tabletHomeQuery)
+  const { setAutomaticPause } = useHomeAudio()
   const [isVideoPreview, setIsVideoPreview] = useState(false)
   const [activePortfolio, setActivePortfolio] = useState<PhotoPortfolio | null>(null)
+  const isPortfolioOpen = activePortfolio !== null
   useEffect(() => {
-    if (!activePortfolio) return
+    if (!isPortfolioOpen) return
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = previousOverflow }
-  }, [activePortfolio])
+  }, [isPortfolioOpen])
+  useEffect(() => {
+    setAutomaticPause('portfolio-reader', isPortfolioOpen)
+    return () => setAutomaticPause('portfolio-reader', false)
+  }, [isPortfolioOpen, setAutomaticPause])
   return (
     <main className={`page-shell page-shell--media${isPhone ? ' page-shell--media-phone' : ''}`}>
       <div className="media-stage">
@@ -282,7 +293,7 @@ export default function MediaPage() {
       </div>
       {activePortfolio && (
         <Suspense fallback={<PortfolioReaderLoadingShell portfolio={activePortfolio} onClose={() => setActivePortfolio(null)} />}>
-          <PortfolioReader portfolio={activePortfolio} onClose={() => setActivePortfolio(null)} />
+          <PortfolioReader key={activePortfolio.pdfUrl} portfolio={activePortfolio} onClose={() => setActivePortfolio(null)} />
         </Suspense>
       )}
     </main>

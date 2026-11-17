@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useLocation } from 'react-router-dom'
 import { activeWantsPlayback, audioReducer, createInitialState, permittedTrackId, type ActualPlayback, type AudioAction, type AudioControllerState } from '../audio/audioState'
 import { AudioTransport, type TransportReport } from '../audio/audioTransport'
+import { AudioPauseCoordinator, type AutomaticPauseReason } from '../audio/audioPauseCoordinator'
 import { homeTrack, trackIdForPath, tracksById, type SiteTrack } from '../data/tracks'
 
 /* Must match the CSS phone query:
@@ -21,6 +22,7 @@ type HomeAudioContextValue = {
   canSeek: boolean
   analyser: AnalyserNode | null
   playbackError: boolean
+  setAutomaticPause: (reason: AutomaticPauseReason, paused: boolean) => void
   togglePlayback: () => void
   seekTo: (time: number) => void
 }
@@ -59,6 +61,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
   const analyserRef = useRef<AnalyserNode | null>(null)
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
   const transportRef = useRef<AudioTransport | null>(null)
+  const pauseCoordinatorRef = useRef(new AudioPauseCoordinator())
   const { pathname } = useLocation()
   const routeTrackId = trackIdForPath(pathname)
   const isPhone = useMediaQuery(mobileHomeQuery)
@@ -75,6 +78,43 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
       setState(next)
     }
     return next
+  }, [])
+
+  const setAutomaticPause = useCallback((reason: AutomaticPauseReason, paused: boolean) => {
+    const coordinator = pauseCoordinatorRef.current
+    const transport = transportRef.current
+
+    if (paused) {
+      const firstReason = coordinator.acquire(reason, stateRef.current.actualPlayback === 'playing')
+      if (!firstReason) return
+      const next = apply({ type: 'automaticPause' })
+      transport?.pause(next.operationId)
+      return
+    }
+
+    const shouldResume = coordinator.release(reason)
+    if (!shouldResume || coordinator.isPaused || !activeWantsPlayback(stateRef.current)) return
+    const next = apply({ type: 'automaticResume' })
+    const trackId = next.activeTrackId
+    transport?.activate(trackId ? tracksById[trackId].src : null, Boolean(trackId), next.operationId)
+  }, [apply])
+
+  useEffect(() => {
+    const updateVisibility = () => setAutomaticPause('document-hidden', document.visibilityState !== 'visible')
+    document.addEventListener('visibilitychange', updateVisibility)
+    updateVisibility()
+    return () => {
+      document.removeEventListener('visibilitychange', updateVisibility)
+      setAutomaticPause('document-hidden', false)
+    }
+  }, [setAutomaticPause])
+
+  useEffect(() => {
+    const artworks = new Set(Object.values(tracksById).map((siteTrack) => siteTrack.artwork))
+    for (const artwork of artworks) {
+      const image = new Image()
+      image.src = artwork
+    }
   }, [])
 
   const prepareAnalyser = useCallback(async (audio: HTMLAudioElement, fromGesture: boolean) => {
@@ -169,7 +209,7 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     if (!transport) return
     const next = apply({ type: 'routeChanged', trackId: permittedTrackId(routeTrackId, isPhone) })
     const trackId = next.activeTrackId
-    transport.activate(trackId ? tracksById[trackId].src : null, activeWantsPlayback(next), next.operationId)
+    transport.activate(trackId ? tracksById[trackId].src : null, activeWantsPlayback(next) && !pauseCoordinatorRef.current.isPaused, next.operationId)
   }, [apply, isPhone, routeTrackId])
 
   const togglePlayback = useCallback(() => {
@@ -177,10 +217,17 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current
     if (!transport || !audio || !stateRef.current.activeTrackId) return
     if (stateRef.current.actualPlayback === 'playing') {
+      pauseCoordinatorRef.current.cancelResumeOnRelease()
       transport.pause(apply({ type: 'userPause' }).operationId)
       return
     }
-    transport.playFromGesture(apply({ type: 'userPlay' }).operationId)
+    const next = apply({ type: 'userPlay' })
+    if (pauseCoordinatorRef.current.isPaused) {
+      pauseCoordinatorRef.current.requestResumeOnRelease()
+      transport.pause(next.operationId)
+      return
+    }
+    transport.playFromGesture(next.operationId)
     void prepareAnalyser(audio, true)
   }, [apply, prepareAnalyser])
 
@@ -191,7 +238,8 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     audio.currentTime = Math.min(availableDuration, Math.max(0, time))
   }, [])
 
-  const track = state.activeTrackId ? tracksById[state.activeTrackId] : homeTrack
+  const displayTrackId = permittedTrackId(routeTrackId, isPhone)
+  const track = displayTrackId ? tracksById[displayTrackId] : homeTrack
   const { actualPlayback } = state
   const wantsPlayback = activeWantsPlayback(state)
 
@@ -207,9 +255,10 @@ export function HomeAudioProvider({ children }: { children: ReactNode }) {
     canSeek: canSeek && state.activeTrackId !== null,
     analyser,
     playbackError: actualPlayback === 'error',
+    setAutomaticPause,
     togglePlayback,
     seekTo,
-  }), [actualPlayback, analyser, canSeek, duration, seekTo, state.activeTrackId, togglePlayback, track, wantsPlayback])
+  }), [actualPlayback, analyser, canSeek, duration, seekTo, setAutomaticPause, state.activeTrackId, togglePlayback, track, wantsPlayback])
 
   return (
     <HomeAudioContext.Provider value={value}>
