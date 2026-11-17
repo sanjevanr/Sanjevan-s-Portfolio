@@ -104,7 +104,6 @@ function MediaFinder({ onVideoPreviewChange, onPortfolioOpen, preferWideThumbnai
     ]
     if (place === 'photo') return [
       { kind: 'folder', id: 'portfolios', name: 'Portfolios' },
-      { kind: 'folder', id: 'capsules', name: 'Capsules' },
     ]
     if (place === 'portfolios') return photoPortfolios.map((item) => ({ kind: 'portfolio', item }))
     if (place === 'video') return videoUploads.map((item) => ({ kind: 'video', item }))

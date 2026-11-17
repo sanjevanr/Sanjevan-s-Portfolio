@@ -32,14 +32,11 @@ async function expectPdfCanvasHasArtwork(page: Page, pageNumber: number) {
 }
 
 test.describe('Media photography portfolios', () => {
-  test('Finder folders and Capsules empty state are navigable', async ({ page }) => {
+  test('Finder folders are navigable without Capsules', async ({ page }) => {
     await page.goto('/media')
     await page.getByRole('button', { name: 'Photo', exact: true }).click()
     await expect(page.getByRole('option', { name: 'Portfolios', exact: true })).toBeVisible()
-    await expect(page.getByRole('option', { name: 'Capsules', exact: true })).toBeVisible()
-    await page.getByRole('option', { name: 'Capsules', exact: true }).dblclick()
-    await expect(page.getByText('This folder is empty')).toBeVisible()
-    await expect(page.getByText('Future photo collections will appear here.')).toBeVisible()
+    await expect(page.getByRole('option', { name: 'Capsules', exact: true })).toHaveCount(0)
     await page.getByRole('button', { name: 'Video', exact: true }).click()
     await expect(page.getByRole('option')).toHaveCount(7)
   })
