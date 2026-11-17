@@ -84,7 +84,6 @@ export default function EntryScreen({ fading, onComplete }: EntryScreenProps) {
             <span />
             <span />
           </div>
-          <p className="entry-screen__title">SANJEVAN.EXE</p>
         </div>
         <div className="entry-screen__body">
           <p id="entry-welcome" className="entry-screen__welcome">Welcome to Sanjevan's Portfolio</p>

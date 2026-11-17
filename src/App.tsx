@@ -416,9 +416,13 @@ function App() {
   const isPhone = useMediaQuery(mobileHomeQuery)
   const [entryPhase, setEntryPhase] = useState<'boot' | 'fade' | 'done'>(() => (entryGranted() ? 'done' : 'boot'))
   const siteRef = useRef<HTMLDivElement>(null)
-  const entryHeld = !isPhone && entryPhase === 'boot'
+  const restoreFocusRef = useRef(false)
+  const siteClosed = !isPhone && entryPhase !== 'done'
+  const siteBooting = !isPhone && entryPhase === 'boot'
+  const siteOpening = !isPhone && entryPhase === 'fade'
   const entryVisible = !isPhone && entryPhase !== 'done'
   const finishEntry = useCallback(() => {
+    restoreFocusRef.current = true
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setEntryPhase('done')
       return
@@ -428,8 +432,17 @@ function App() {
 
   useEffect(() => {
     if (entryPhase !== 'fade') return
-    const timeout = window.setTimeout(() => setEntryPhase('done'), 460)
+    const timeout = window.setTimeout(() => setEntryPhase('done'), 1350)
     return () => window.clearTimeout(timeout)
+  }, [entryPhase])
+
+  useEffect(() => {
+    if (entryPhase !== 'done' || !restoreFocusRef.current) return
+    restoreFocusRef.current = false
+    const main = Array.from(siteRef.current?.querySelectorAll<HTMLElement>('main') ?? []).find((element) => element.getClientRects().length > 0)
+    if (!main) return
+    main.tabIndex = -1
+    main.focus({ preventScroll: true })
   }, [entryPhase])
 
   useEffect(() => {
@@ -467,7 +480,7 @@ function App() {
 
   return (
     <HomeAudioProvider>
-    <div className={`site${entryHeld ? ' site--held' : ''}${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/media' ? ' site--media' : ''}${pathname === '/contact' ? ' site--contact' : ''}${pathname === '/about' ? ' site--about' : ''}`} ref={siteRef} inert={entryHeld ? true : undefined} aria-hidden={entryHeld ? true : undefined}>
+    <div className={`site${siteBooting ? ' site--booting' : ''}${siteOpening ? ' site--opening' : ''}${pathname === '/' ? ' site--home' : ''}${pathname === '/projects' ? ' site--projects' : ''}${pathname === '/media' ? ' site--media' : ''}${pathname === '/contact' ? ' site--contact' : ''}${pathname === '/about' ? ' site--about' : ''}`} ref={siteRef} inert={siteClosed ? true : undefined} aria-hidden={siteBooting ? true : undefined}>
       <MorphingBackground />
       <SiteHeader theme={theme} onToggleTheme={toggleTheme} />
       <div className="site-content">

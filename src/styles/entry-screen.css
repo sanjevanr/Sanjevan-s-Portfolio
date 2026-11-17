@@ -1,10 +1,56 @@
-.site {
-  transition: background-color 220ms ease, opacity 420ms ease;
+/* Foreground stays out of view while the morphing background, which lives
+   inside .site, keeps running. Opacity hides without changing layout size,
+   so collage measurement still sees the real window boxes. */
+.site--booting :is(.site-header, .site-footer),
+.site--booting .moodboard-collage > :is(section, .photo-frame--standalone),
+.site--booting .projects-collage section.retro-window,
+.site--booting .media-collage section.retro-window,
+.site--booting .about-collage > :is(section, .about-headshot-wrap),
+.site--booting .contact-collage > :is(section, .contact-shortcuts) {
+  opacity: 0;
 }
 
-.site--held {
-  opacity: 0;
-  pointer-events: none;
+/* Entrance scale is a separate property from transform, so existing
+   translate(-50%, -50%) and collage scale() rules stay in place. */
+@keyframes window-open {
+  0% { opacity: 0; scale: 0.92; }
+  62% { opacity: 1; }
+  78% { scale: 1.012; }
+  100% { opacity: 1; scale: 1; }
+}
+
+@keyframes chrome-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.site--opening :is(.site-header, .site-footer) {
+  animation: chrome-in 280ms ease 140ms both;
+}
+
+.site--opening .moodboard-collage > .photo-frame--standalone { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 240ms both; }
+.site--opening .moodboard-collage > section.retro-window--intro { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 340ms both; }
+.site--opening .moodboard-collage > section.retro-window--youtube { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 440ms both; }
+.site--opening .moodboard-collage > section.retro-window--spotify { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 540ms both; }
+.site--opening .moodboard-collage > section.retro-window--eye-horus { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 640ms both; }
+.site--opening .moodboard-collage > section.retro-window--social-browser { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 740ms both; }
+
+.site--opening .projects-collage > section.projects-workspace { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 240ms both; }
+.site--opening .projects-collage section.retro-window--projects-player { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 340ms both; }
+
+.site--opening .media-finder-window { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 240ms both; }
+.site--opening .media-player-window { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 340ms both; }
+
+.site--opening .about-headshot-wrap { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 240ms both; }
+.site--opening .about-collage > section.about-career-window { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 340ms both; }
+.site--opening .about-collage > section.about-player-window { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 440ms both; }
+.site--opening .about-scrapbook { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 540ms both; }
+
+.site--opening .contact-collage > section.contact-window { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 240ms both; }
+.site--opening .contact-shortcuts { animation: window-open 460ms cubic-bezier(0.16, 0.84, 0.24, 1) 340ms both; }
+
+main:focus {
+  outline: none;
 }
 
 .entry-screen {
@@ -14,12 +60,11 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--canvas-bg);
-  transition: opacity 420ms ease;
+  background: transparent;
+  pointer-events: auto;
 }
 
 .entry-screen--out {
-  opacity: 0;
   pointer-events: none;
 }
 
@@ -34,6 +79,14 @@
     inset 1px 1px 0 #fff,
     inset -1px -1px 0 #75818a,
     0 8px 18px rgba(0, 0, 0, .2);
+}
+
+.entry-screen--out .entry-screen__window {
+  animation: entry-dismiss 380ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+@keyframes entry-dismiss {
+  to { opacity: 0; scale: 0.94; }
 }
 
 .entry-screen__titlebar {
@@ -63,13 +116,6 @@
 .entry-screen__dots span:nth-child(1) { background: #ff5f57; }
 .entry-screen__dots span:nth-child(2) { background: #febc2e; }
 .entry-screen__dots span:nth-child(3) { background: #28c840; }
-
-.entry-screen__title {
-  margin: 0;
-  color: #2b343b;
-  font: 700 12px/1 var(--mono);
-  letter-spacing: .08em;
-}
 
 .entry-screen__body {
   display: grid;
@@ -120,7 +166,7 @@
   width: 0;
   height: 100%;
   background: repeating-linear-gradient(90deg, #245ea8 0 10px, #3c86d8 10px 12px);
-  animation: entry-bar 1.6s steps(16, end) forwards;
+  animation: entry-bar 1.6s ease-out forwards;
 }
 
 .entry-screen__status {
@@ -136,7 +182,18 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .site { transition: background-color 220ms ease; }
+  .site--opening :is(.site-header, .site-footer),
+  .site--opening .moodboard-collage > :is(section, .photo-frame--standalone),
+  .site--opening .projects-collage section.retro-window,
+  .site--opening .media-finder-window,
+  .site--opening .media-player-window,
+  .site--opening .about-collage > :is(section, .about-headshot-wrap),
+  .site--opening .contact-collage > :is(section, .contact-shortcuts),
   .entry-screen,
-  .entry-screen__fill { animation: none; transition: none; }
+  .entry-screen__window,
+  .entry-screen__fill {
+    animation: none;
+    opacity: 1;
+    scale: none;
+  }
 }

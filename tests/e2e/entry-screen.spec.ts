@@ -29,7 +29,8 @@ test.describe('desktop entry', () => {
     await expect(dialog(page)).toBeVisible()
     await expect(page.getByRole('button', { name: 'ENTER' })).toBeFocused()
     await expect(page.getByRole('link', { name: 'projects', exact: true })).toHaveCount(0)
-    await expect(page.locator('.site')).toHaveCSS('opacity', '0')
+    await expect(page.locator('.morphing-background')).toBeVisible()
+    await expect(page.locator('.site-header')).toHaveCSS('opacity', '0')
     expect(await page.locator('.site').evaluate((element) => element.hasAttribute('inert'))).toBe(true)
 
     const started = Date.now()
